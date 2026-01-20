@@ -3,12 +3,10 @@ import {
   Monitor,
   Play,
   Scissors,
-  Share2,
   Sparkles,
   Zap,
   Shield,
   Download,
-  ArrowRight,
   Check,
 } from "lucide-react";
 import { FaApple, FaWindows, FaGithub } from "react-icons/fa";
