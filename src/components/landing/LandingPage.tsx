@@ -7,11 +7,10 @@ import {
   Shield,
   Download,
   Check,
-  Github,
   Menu,
   X 
 } from "lucide-react";
-import { FaApple, FaWindows, FaGithub, FaAws, FaMicrosoft } from "react-icons/fa";
+import { FaGithub, FaAws, FaMicrosoft } from "react-icons/fa";
 import { useState } from "react";
 
 export function LandingPage() {
