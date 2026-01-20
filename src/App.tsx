@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { LaunchWindow } from "./components/launch/LaunchWindow";
 import { SourceSelector } from "./components/launch/SourceSelector";
 import VideoEditor from "./components/video-editor/VideoEditor";
+import { LandingPage } from "./components/landing/LandingPage";
 
 export default function App() {
   const [windowType, setWindowType] = useState('');
@@ -17,6 +18,7 @@ export default function App() {
     }
   }, []);
 
+  // For Electron app, handle different window types
   switch (windowType) {
     case 'hud-overlay':
       return <LaunchWindow />;
@@ -25,7 +27,7 @@ export default function App() {
     case 'editor':
       return <VideoEditor />;
     default:
-      // For web deployment, default to launch window
-      return <LaunchWindow />;
+      // For web deployment (no windowType param), show landing page
+      return <LandingPage />;
   }
 }
