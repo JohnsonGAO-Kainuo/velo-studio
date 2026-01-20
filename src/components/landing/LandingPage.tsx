@@ -19,6 +19,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import "./radio-inputs.css";
+import "./uiverse-buttons.css";
 
 // --- Components ---
 
@@ -352,7 +353,10 @@ function Pricing() {
                             <span className="text-[#5c5c5c]">/forever</span>
                         </div>
                         <p className="text-[#5c5c5c] text-sm mb-8">Perfect for hobbyists and occasional users.</p>
-                        <Button variant="outline" className="w-full rounded-xl border-black/10 hover:bg-white text-[#202020] mb-8">Download Free</Button>
+                        <button className="Btn mb-8">
+                          Download Free
+                          <svg className="svgIcon" viewBox="0 0 576 512" aria-hidden="true"><path d="M512 80c8.8 0 16 7.2 16 16v32H48V96c0-8.8 7.2-16 16-16H512zm16 144V416c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V224H528zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H512c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zm56 304c-13.3 0-24 10.7-24 24s10.7 24 24 24h48c13.3 0 24-10.7 24-24s-10.7-24-24-24H120zm128 0c-13.3 0-24 10.7-24 24s10.7 24 24 24H360c13.3 0 24-10.7 24-24s-10.7-24-24-24H248z"></path></svg>
+                        </button>
                         <ul className="space-y-4 flex-1">
                             {["720p Recording", "5 Minute limit", "Local only"].map(item => (
                                 <li key={item} className="flex items-center gap-3 text-sm text-[#5c5c5c]">
@@ -376,7 +380,10 @@ function Pricing() {
                             <span className="text-white/60">/month</span>
                         </div>
                         <p className="text-white/60 text-sm mb-8">For professionals who need power and flexibility.</p>
-                        <Button className="w-full rounded-xl bg-white text-[#202020] hover:bg-gray-100 mb-8 font-semibold">Get Started</Button>
+                        <button className="Btn mb-8">
+                          Get Started
+                          <svg className="svgIcon" viewBox="0 0 576 512" aria-hidden="true"><path d="M512 80c8.8 0 16 7.2 16 16v32H48V96c0-8.8 7.2-16 16-16H512zm16 144V416c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V224H528zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H512c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zm56 304c-13.3 0-24 10.7-24 24s10.7 24 24 24h48c13.3 0 24-10.7 24-24s-10.7-24-24-24H120zm128 0c-13.3 0-24 10.7-24 24s10.7 24 24 24H360c13.3 0 24-10.7 24-24s-10.7-24-24-24H248z"></path></svg>
+                        </button>
                         <ul className="space-y-4 flex-1">
                             {["4K Recording", "Unlimited time", "Cloud Sync", "Priority Support", "Advanced Editor"].map(item => (
                                 <li key={item} className="flex items-center gap-3 text-sm text-white/80">
@@ -397,7 +404,10 @@ function Pricing() {
                             <span className="text-[#5c5c5c]">/month</span>
                         </div>
                         <p className="text-[#5c5c5c] text-sm mb-8">Collaborative features for growing teams.</p>
-                        <Button variant="outline" className="w-full rounded-xl border-black/10 hover:bg-white text-[#202020] mb-8">Contact Sales</Button>
+                        <button className="Btn mb-8">
+                          Contact Sales
+                          <svg className="svgIcon" viewBox="0 0 576 512" aria-hidden="true"><path d="M512 80c8.8 0 16 7.2 16 16v32H48V96c0-8.8 7.2-16 16-16H512zm16 144V416c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V224H528zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H512c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zm56 304c-13.3 0-24 10.7-24 24s10.7 24 24 24h48c13.3 0 24-10.7 24-24s-10.7-24-24-24H120zm128 0c-13.3 0-24 10.7-24 24s10.7 24 24 24H360c13.3 0 24-10.7 24-24s-10.7-24-24-24H248z"></path></svg>
+                        </button>
                          <ul className="space-y-4 flex-1">
                             {["Everything in Pro", "Team Management", "SSO Integration", "Centralized Billing"].map(item => (
                                 <li key={item} className="flex items-center gap-3 text-sm text-[#5c5c5c]">
