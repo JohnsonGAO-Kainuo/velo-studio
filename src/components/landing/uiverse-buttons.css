@@ -48,3 +48,196 @@
   transform: translate(5px,5px);
   transition-duration: .3s;
 }
+
+/* Small GitHub icon button (from Uiverse by vinodjangid07) */
+.github-btn {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+  position: relative;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all .3s;
+}
+
+.github-btn .svgContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  backdrop-filter: blur(0px);
+  border-radius: 10px;
+  transition: all .3s;
+  border: 1px solid rgba(156, 156, 156, 0.466);
+}
+
+.github-btn .BG {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background: #181818;
+  z-index: -1;
+  border-radius: 10px;
+  pointer-events: none;
+  transition: all .3s;
+}
+
+.github-btn:hover .BG {
+  transform: rotate(35deg);
+  transform-origin: bottom;
+}
+
+.github-btn:hover .svgContainer {
+  background-color: rgba(156, 156, 156, 0.466);
+  backdrop-filter: blur(4px);
+}
+
+/* .card utility for pricing */
+.card {
+  width: 100%;
+  border-radius: 20px;
+  background: #f3f3f3;
+  box-shadow: 15px 15px 30px #d8d8d8, -15px -15px 30px #ffffff;
+}
+
+/* From Uiverse.io by JaydipPrajapati1910 - payment button */
+.uiverse-button {
+  --width: 120px;
+  --height: 40px;
+  --tooltip-height: 35px;
+  --tooltip-width: 110px;
+  --gap-between-tooltip-to-button: 18px;
+  --button-color: #222;
+  --tooltip-color: #fff;
+  width: var(--width);
+  height: var(--height);
+  background: var(--button-color);
+  position: relative;
+  text-align: center;
+  border-radius: 0.45em;
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background 0.3s;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.uiverse-button::before {
+  position: absolute;
+  content: attr(data-tooltip);
+  width: var(--tooltip-width);
+  height: var(--tooltip-height);
+  background-color: #555;
+  font-size: 0.9rem;
+  color: #fff;
+  border-radius: .25em;
+  line-height: var(--tooltip-height);
+  bottom: calc(var(--height) + var(--gap-between-tooltip-to-button) + 10px);
+  left: calc(50% - var(--tooltip-width) / 2);
+}
+
+.uiverse-button::after {
+  position: absolute;
+  content: '';
+  width: 0;
+  height: 0;
+  border: 10px solid transparent;
+  border-top-color: #555;
+  left: calc(50% - 10px);
+  bottom: calc(100% + var(--gap-between-tooltip-to-button) - 10px);
+}
+
+.uiverse-button::after,.uiverse-button::before {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s;
+}
+
+.uiverse-button .text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uiverse-button .button-wrapper, .uiverse-button .text, .uiverse-button .icon {
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  color: #fff;
+}
+
+.uiverse-button .text { top: 0 }
+.uiverse-button .text, .uiverse-button .icon { transition: top 0.5s; }
+
+.uiverse-button .icon {
+  color: #fff;
+  top: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uiverse-button .icon svg { width: 18px; height: 18px; }
+
+.uiverse-button:hover { background: #222; }
+.uiverse-button:hover .text { top: -100%; }
+.uiverse-button:hover .icon { top: 0; }
+.uiverse-button:hover:before, .uiverse-button:hover:after { opacity: 1; visibility: visible; }
+.uiverse-button:hover:after { bottom: calc(var(--height) + var(--gap-between-tooltip-to-button) - 20px); }
+.uiverse-button:hover:before { bottom: calc(var(--height) + var(--gap-between-tooltip-to-button)); }
+
+/* From Uiverse.io by marcelodolza - download button (renamed to .uiverse-download) */
+.uiverse-download {
+  --primary: #ff5569;
+  --neutral-1: #f7f8f7;
+  --neutral-2: #e7e7e7;
+  --radius: 14px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  border: none;
+  box-shadow: 0 0.5px 0.5px 1px rgba(255,255,255,0.2), 0 10px 20px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  padding: 16px 22px;
+  height: 56px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(var(--neutral-1), var(--neutral-2));
+  color: #202020;
+}
+.uiverse-download:hover { transform: scale(1.02); }
+.uiverse-download:active { transform: scale(1); }
+.uiverse-download:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  border: 2.5px solid transparent;
+  background: linear-gradient(var(--neutral-1), var(--neutral-2)) padding-box, linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.45)) border-box;
+  z-index: 0;
+  transition: all 0.4s ease;
+}
+.uiverse-download .outline { position: absolute; border-radius: inherit; overflow: hidden; z-index:1; opacity:0; transition: opacity .4s ease; inset: -2px -3.5px; }
+.uiverse-download .outline::before { content: ""; position: absolute; inset: -100%; background: conic-gradient(from 180deg, transparent 60%, white 80%, transparent 100%); animation: spin 2s linear infinite; animation-play-state: paused; }
+.uiverse-download:hover .outline { opacity: 1; }
+.uiverse-download:hover .outline::before { animation-play-state: running; }
+.uiverse-download .state { padding-left: 42px; z-index: 2; display:flex; align-items:center; position:relative; gap:12px; }
+.uiverse-download .state .icon { display:flex; align-items:center; justify-content:center; transform: scale(1.1); }
+.uiverse-download .state p { margin:0; font-weight:600; }
+
+
