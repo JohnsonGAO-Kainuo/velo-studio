@@ -181,7 +181,7 @@ function Hero() {
             <div className="state state--default">
               <div className="icon">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.3015 20.0163C16.4526 21.2464 15.6582 22.4285 14.3644 22.4285C13.0673 22.4285 12.6586 21.6706 11.2338 21.6706C9.80901 21.6706 9.3516 22.4285 8.1695 22.4285C6.88219 22.4285 5.92564 21.1895 5.12282 20.0381C3.47514 17.6698 2.21989 13.4357 3.86016 10.5976C4.66635 9.20078 6.13645 8.31885 7.82869 8.31885C9.37341 8.31885 10.6074 9.17896 11.5366 9.17896C12.4273 9.17896 14.1565 8.01602 15.9399 8.27195C16.6852 8.30467 18.774 8.57404 20.1264 10.5507C20.0392 10.6085 17.653 11.9681 17.6639 14.9365C17.6748 17.5213 19.9814 18.8272 19.9814 18.8272C19.9814 18.8272 19.3307 21.0924 18.2329 22.6869C17.9897 23.0391 17.6832 23.5134 17.3015 20.0163ZM14.9123 5.43262C15.7538 4.41436 16.3211 2.99289 16.1684 1.58398C14.9259 1.63524 13.419 2.41315 12.5359 3.44778C11.7509 4.36419 11.0601 5.81598 11.2378 7.21074C12.6046 7.3198 14.0729 6.46726 14.9123 5.43262Z" fill="currentColor"/>
+                   <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.55-.03 3.03 1.04 3.98 1.04.95 0 2.73-1.29 4.6-1.1 1.56.06 2.76.63 3.69 1.98-3.02 1.83-2.51 5.5.94 6.89-.69 1.74-1.63 3.51-3.32 3.81zM15.5 4.36c.83-1.03 1.4-2.45 1.24-3.86-1.22.05-2.69.83-3.56 1.87-.77.93-1.45 2.41-1.27 3.8 1.36.1 2.75-.77 3.59-1.81z"/>
                 </svg>
               </div>
               <p>Download for macOS</p>
@@ -377,11 +377,11 @@ function Pricing() {
                          <span className="bg-white text-[#202020] text-xs font-bold px-3 py-1 rounded-full">Popular</span>
                          </div>
                         <div className="mb-4">
-                            <span className="text-sm font-semibold text-white/60 uppercase tracking-wider">Pro</span>
+                            <span className="text-sm font-semibold text-[#5c5c5c] uppercase tracking-wider">Pro</span>
                         </div>
                         <div className="mb-6">
-                            <span className="text-4xl font-bold text-white">$12</span>
-                            <span className="text-white/60">/month</span>
+                            <span className="text-4xl font-bold text-[#202020]">$12</span>
+                            <span className="text-[#5c5c5c]">/month</span>
                         </div>
                         <p className="text-[#5c5c5c] text-sm mb-8">For professionals who need power and flexibility.</p>
                         <button className="uiverse-download mb-8" data-tooltip="Price:-$12" onClick={() => window.open('#', '_blank')}>
@@ -393,8 +393,8 @@ function Pricing() {
                         </button>
                         <ul className="space-y-4 flex-1">
                             {["4K Recording", "Unlimited time", "Cloud Sync", "Priority Support", "Advanced Editor"].map(item => (
-                                <li key={item} className="flex items-center gap-3 text-sm text-white/80">
-                                    <Check className="w-4 h-4 text-white" />
+                                <li key={item} className="flex items-center gap-3 text-sm text-[#5c5c5c]">
+                                    <Check className="w-4 h-4 text-[#202020]" />
                                     {item}
                                 </li>
                             ))}
