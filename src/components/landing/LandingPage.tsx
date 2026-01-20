@@ -18,12 +18,14 @@ import {
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import "./radio-inputs.css";
 
 // --- Components ---
 
 function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navSelection, setNavSelection] = useState("Product");
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -52,16 +54,32 @@ function NavBar() {
             <span className="text-xl font-bold tracking-tight text-[#202020]">Velo</span>
           </a>
 
-          <div className="hidden md:flex items-center gap-1 bg-white/50 backdrop-blur-md p-1 rounded-full border border-black/5 shadow-sm">
-            {["Product", "Features", "Pricing", "Changelog"].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="px-4 py-1.5 text-sm font-medium text-[#5c5c5c] hover:text-[#202020] hover:bg-white rounded-full transition-all"
-              >
-                {item}
-              </a>
-            ))}
+          <div className="hidden md:flex items-center">
+            <div className="radio-inputs" role="tablist" aria-label="Main nav">
+              {[
+                { key: "Product", label: "Product" },
+                { key: "Features", label: "Features" },
+                { key: "Pricing", label: "Pricing" },
+                { key: "Changelog", label: "Changelog" },
+              ].map((it) => (
+                <div className="radio" key={it.key}>
+                  <input
+                    id={`nav-${it.key}`}
+                    name="nav"
+                    type="radio"
+                    checked={navSelection === it.key}
+                    onChange={() => setNavSelection(it.key)}
+                  />
+                  <label
+                    htmlFor={`nav-${it.key}`}
+                    className="name"
+                    onClick={() => setNavSelection(it.key)}
+                  >
+                    <span className="text-sm font-medium" style={{ color: navSelection === it.key ? '#202020' : '#5c5c5c' }}>{it.label}</span>
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
