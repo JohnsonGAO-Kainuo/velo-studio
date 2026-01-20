@@ -24,11 +24,8 @@ export default function App() {
       return <SourceSelector />;
     case 'editor':
       return <VideoEditor />;
-      default:
-      return (
-        <div className="w-full h-full bg-background text-foreground">
-          <h1>Openscreen</h1>
-        </div>
-      );
+    default:
+      // For web deployment, default to launch window
+      return <LaunchWindow />;
   }
 }
