@@ -6,7 +6,7 @@ import {
   NavBar,
   FAQ
 } from './LandingPage';
-import { PrivacyPolicy, TermsOfService, ChangelogPage } from './LegalPages';
+import { PrivacyPolicy, TermsOfService } from './LegalPages';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 

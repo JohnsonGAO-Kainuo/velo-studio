@@ -92,14 +92,21 @@ export default function VideoEditor() {
   useEffect(() => {
     async function loadVideo() {
       try {
-        const result = await window.electronAPI.getCurrentVideoPath();
-        
-        if (result.success && result.path) {
-          const videoUrl = toFileUrl(result.path);
-          setVideoPath(videoUrl);
-        } else {
-          setError('No video to load. Please record or select a video.');
+        // If running inside Electron, ask the main process for the current video path.
+        // For web/dev (vite) the `electronAPI` won't exist — fall back to a public demo
+        // video so devs can test zoom/preview UI in the browser.
+        if ((window as any).electronAPI && typeof (window as any).electronAPI.getCurrentVideoPath === 'function') {
+          const result = await (window as any).electronAPI.getCurrentVideoPath();
+          if (result.success && result.path) {
+            const videoUrl = toFileUrl(result.path);
+            setVideoPath(videoUrl);
+            return;
+          }
         }
+
+        // Web fallback demo video (CORS-friendly small sample) for development/testing
+        const demoUrl = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+        setVideoPath(demoUrl);
       } catch (err) {
         setError('Error loading video: ' + String(err));
       } finally {

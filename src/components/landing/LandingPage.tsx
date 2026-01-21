@@ -194,7 +194,15 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24"
         >
-          <button className="uiverse-download" onClick={() => window.open('#', '_blank')}>
+          <button className="uiverse-download" onClick={() => {
+            // Auto-detect Mac chip (Apple Silicon vs Intel)
+            const isAppleSilicon = navigator.userAgent.includes('Mac') && 
+              (navigator.userAgent.includes('ARM') || navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0);
+            const downloadUrl = isAppleSilicon 
+              ? 'https://github.com/YOUR_USERNAME/velo-studio/releases/download/v1.0.0/Openscreen-Mac-arm64-1.0.0-Installer.dmg'
+              : 'https://github.com/YOUR_USERNAME/velo-studio/releases/download/v1.0.0/Openscreen-Mac-x64-1.0.0-Installer.dmg';
+            window.open(downloadUrl, '_blank');
+          }}>
             <div className="outline" />
             <div className="state state--default">
               <div className="icon">
