@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { LaunchWindow } from "./components/launch/LaunchWindow";
 import { SourceSelector } from "./components/launch/SourceSelector";
 import VideoEditor from "./components/video-editor/VideoEditor";
-import { LandingPage } from "./components/landing/LandingPage";
+import { WebRoutes } from "./components/landing/WebRoutes";
+import { BrowserRouter } from 'react-router-dom';
 
 export default function App() {
   const [windowType, setWindowType] = useState('');
@@ -27,7 +28,11 @@ export default function App() {
     case 'editor':
       return <VideoEditor />;
     default:
-      // For web deployment (no windowType param), show landing page
-      return <LandingPage />;
+      // For web deployment (no windowType param), use Router
+      return (
+        <BrowserRouter>
+           <WebRoutes />
+        </BrowserRouter>
+      );
   }
 }

@@ -12,7 +12,9 @@ import {
   ArrowRight,
   Globe,
   Layers,
-  Cpu
+  Cpu,
+  Plus,
+  Minus
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,12 +22,15 @@ import { cn } from "@/lib/utils";
 import "./radio-inputs.css";
 import "./uiverse-buttons.css";
 
+import { Link, useLocation } from "react-router-dom";
+
 // --- Components ---
 
-function NavBar() {
+export function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [navSelection, setNavSelection] = useState("Product");
+  const location = useLocation();
+  const currentPath = location.pathname.slice(1) || 'product';
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -46,36 +51,37 @@ function NavBar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <a href="#" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 bg-[#202020] rounded-xl flex items-center justify-center shadow-lg shadow-black/5 transition-transform group-hover:scale-105">
               <Monitor className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold tracking-tight text-[#202020]">Velo</span>
-          </a>
+          </Link>
 
           <div className="hidden md:flex items-center">
             <div className="radio-inputs" role="tablist" aria-label="Main nav">
               {[
-                { key: "Product", label: "Product" },
-                { key: "Features", label: "Features" },
-                { key: "Pricing", label: "Pricing" },
-                { key: "Changelog", label: "Changelog" },
+                { key: "product", label: "Product", path: "/" },
+                { key: "features", label: "Features", path: "/features" },
+                { key: "pricing", label: "Pricing", path: "/pricing" },
+                { key: "changelog", label: "Changelog", path: "#" },
               ].map((it) => (
                 <div className="radio" key={it.key}>
+                  <Link to={it.path}>
                   <input
                     id={`nav-${it.key}`}
                     name="nav"
                     type="radio"
-                    checked={navSelection === it.key}
-                    onChange={() => setNavSelection(it.key)}
+                    checked={currentPath === it.key || (it.key === 'product' && location.pathname === '/')}
+                    onChange={() => {}}
                   />
                   <label
                     htmlFor={`nav-${it.key}`}
                     className="name"
-                    onClick={() => setNavSelection(it.key)}
                   >
-                    <span className="text-sm font-medium" style={{ color: navSelection === it.key ? '#202020' : '#5c5c5c' }}>{it.label}</span>
+                    <span className="text-sm font-medium" style={{ color: (currentPath === it.key || (it.key === 'product' && location.pathname === '/')) ? '#202020' : '#5c5c5c' }}>{it.label}</span>
                   </label>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -132,7 +138,7 @@ function NavBar() {
   );
 }
 
-function Hero() {
+export function Hero() {
   return (
     <section className="relative pt-40 pb-20 px-6 overflow-hidden">
       <div className="max-w-5xl mx-auto text-center relative z-10">
@@ -264,7 +270,7 @@ function Hero() {
   );
 }
 
-function Features() {
+export function Features() {
   const features = [
     {
       title: "Optimized Performance",
@@ -334,7 +340,7 @@ function Features() {
   );
 }
 
-function Pricing() {
+export function Pricing() {
     return (
         <section className="py-32 px-6 bg-white border-y border-black/5">
             <div className="max-w-7xl mx-auto">
@@ -408,7 +414,7 @@ function Pricing() {
     )
 }
 
-function Footer() {
+export function Footer() {
   return (
     <footer className="py-20 px-6 bg-[#f2f2f2] border-t border-black/5">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
@@ -463,6 +469,64 @@ function Footer() {
   );
 }
 
+export function FAQ() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const faqs = [
+    { question: "Does Velo Studio support 4K recording?", answer: "Yes, Velo Studio supports 4K recording at 60fps on supported hardware, ensuring your content looks crisp and professional." },
+    { question: "Is my data safe?", answer: "Absolutely. All recording and processing happens locally on your machine. We never upload your video files to any server unless you explicitly choose a cloud sync option." },
+    { question: "Can I edit videos within the app?", answer: "Yes, Velo Studio comes with a powerful built-in editor that lets you trim, cut, annotate, and add effects to your recordings instantly." },
+    { question: "Is there a Windows version?", answer: "Currently, Velo Studio is optimized for macOS. A Windows version is in development and will be released soon." },
+  ];
+
+  return (
+    <section className="py-32 px-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-16">
+           <span className="text-sm font-semibold text-[#202020] uppercase tracking-widest mb-2 block">Support</span>
+          <h2 className="text-4xl font-bold text-[#202020] mb-6">Frequently Asked Questions</h2>
+          <p className="text-[#5c5c5c]">Have a different question? <a href="#" className="underline hover:text-[#202020]">Contact support</a></p>
+        </div>
+
+        <div className="space-y-4">
+          {faqs.map((faq, index) => (
+            <div 
+              key={index} 
+              className="border border-black/5 rounded-2xl bg-white overflow-hidden transition-all duration-300 hover:shadow-md"
+            >
+              <button
+                className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+              >
+                <span className="font-semibold text-[#202020] text-lg">{faq.question}</span>
+                {openIndex === index ? (
+                  <Minus className="w-5 h-5 text-[#5c5c5c]" />
+                ) : (
+                  <Plus className="w-5 h-5 text-[#5c5c5c]" />
+                )}
+              </button>
+              <AnimatePresence>
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="px-6 pb-6 text-[#5c5c5c] leading-relaxed">
+                      {faq.answer}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-[#f2f2f2] text-[#5c5c5c] font-sans selection:bg-[#202020] selection:text-white">
@@ -470,6 +534,7 @@ export function LandingPage() {
       <Hero />
       <Features />
       <Pricing />
+      <FAQ />
       <Footer />
     </div>
   );
