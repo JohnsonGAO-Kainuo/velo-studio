@@ -6,6 +6,7 @@ import {
   NavBar,
   FAQ
 } from './LandingPage';
+import { PrivacyPolicy, TermsOfService, ChangelogPage } from './LegalPages';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
@@ -31,7 +32,7 @@ function HomePage() {
 }
 
 function ProductPage() {
-    // Re-using Hero as the main "Product" view for now, or could be a specific separate view
+    // Re-using Hero as the main "Product" view for now
     return (
         <div className="pt-20">
              <Hero />
@@ -66,6 +67,9 @@ export function WebRoutes() {
         <Route path="/product" element={<ProductPage />} />
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/changelog" element={<ChangelogPage />} />
       </Routes>
       <Footer />
     </div>

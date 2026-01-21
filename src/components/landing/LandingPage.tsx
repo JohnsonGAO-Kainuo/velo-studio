@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import "./radio-inputs.css";
 import "./uiverse-buttons.css";
@@ -77,7 +78,7 @@ export function NavBar() {
                 { key: "product", label: "Product", path: "/" },
                 { key: "features", label: "Features", path: "/features" },
                 { key: "pricing", label: "Pricing", path: "/pricing" },
-                { key: "changelog", label: "Changelog", path: "#" },
+                { key: "changelog", label: "Changelog", path: "/changelog" },
               ].map((it) => (
                 <div className="radio" key={it.key}>
                   <Link to={it.path}>
@@ -448,26 +449,28 @@ export function Footer() {
       </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 w-full md:w-auto">
-          {[
-            { header: "Product", links: ["Features", "Pricing", "Changelog", "Docs"] },
-            { header: "Company", links: ["About", "Careers", "Blog", "Contact"] },
-            { header: "Resources", links: ["Community", "Help Center", "Partners", "Status"] },
-            { header: "Legal", links: ["Privacy", "Terms", "Security", "Cookies"] },
-          ].map((col, i) => (
-            <div key={i}>
-              <h4 className="text-[#202020] font-bold text-sm mb-6">{col.header}</h4>
-              <ul className="flex flex-col gap-3">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-12 w-full md:w-auto">
+          <div>
+            <h4 className="text-[#202020] font-bold text-sm mb-6">Product</h4>
+            <ul className="flex flex-col gap-3">
+              <li><Link to="/features" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Features</Link></li>
+              <li><Link to="/pricing" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Pricing</Link></li>
+              <li><Link to="/changelog" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Changelog</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-[#202020] font-bold text-sm mb-6">Company</h4>
+             <ul className="flex flex-col gap-3">
+              <li><a href="mailto:contact@kainuotech.com" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-[#202020] font-bold text-sm mb-6">Legal</h4>
+            <ul className="flex flex-col gap-3">
+              <li><Link to="/privacy" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Privacy</Link></li>
+              <li><Link to="/terms" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Terms</Link></li>
+            </ul>
+          </div>
         </div>
       </div>
       
