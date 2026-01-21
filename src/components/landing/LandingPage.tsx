@@ -24,6 +24,19 @@ import "./uiverse-buttons.css";
 
 import { Link, useLocation } from "react-router-dom";
 
+
+export function Logo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 132 95" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <path d="M54.2871 83.816L55.3736 83.8112C55.9723 83.8112 58.4157 83.8643 60.8059 83.9319C66.2431 84.0864 70.7918 82.2712 74.5679 77.0574H75.0508L77.5859 73.316C78.9814 71.2595 80.1741 69.3043 80.3624 68.3678C84.38 62.1209 104.023 19.9905 104.023 18.7643C104.023 18.0498 103.203 18.074 100.523 18.8753L99.6775 19.1264L97.8667 19.7588C92.2798 21.7188 86.6205 25.5084 74.0851 37.4712C83.704 17.8229 97.7846 7.9119 112.739 7.1781C120.103 6.81603 120.04 6.21258 113.937 18.7933C111.131 24.5816 105.033 37.6547 100.392 47.836C87.1227 76.956 83.0376 82.9567 74.3893 86.0512C69.2997 87.8712 61.7234 87.5526 57.3051 85.3319L54.2871 83.816Z" fill="#89A389"/>
+      <path d="M61.0469 63.0575C46.9179 31.0313 43.813 27.203 35.0923 25.0596L32.5571 24.4368C28.2547 19.223 26.7337 17.1616 26.4005 16.4858L25.7969 15.2644C47.1642 17.3596 55.064 25.2672 63.5482 47.4885L66.3585 54.8506L64.5043 58.592C63.4854 60.6485 62.2879 62.4975 61.0469 63.0575Z" fill="#89A389"/>
+      <path d="M54.2877 83.8161C47.455 77.8202 42.293 68.6767 34.4318 50.9885C22.6834 24.5526 18.9701 19.0057 11.2006 16.3071C6.29456 14.6029 6 14.3133 6 11.2236C6 5.72984 10.5294 5.59467 19.2405 10.8229C21.9156 12.4305 24.4894 14.0864 24.9529 14.5016L25.7979 15.2643L26.4015 16.4857C26.7347 17.1616 28.2558 19.2229 32.5582 24.4367L32.6789 25.4891C32.9059 27.454 48.5801 61.334 52.1002 67.4698C57.5133 76.9029 61.8785 79.4085 74.5685 77.0574C70.7924 82.2712 66.2437 84.0864 60.8065 83.9319C58.4163 83.8643 55.9729 83.8112 55.3741 83.8112L54.2877 83.8161Z" fill="#595B60"/>
+      <path d="M74.0861 37.4713C86.6216 25.5085 92.2809 21.7189 97.8678 19.7589L99.6786 19.1265C99.6786 19.8941 98.6452 20.734 97.3849 21.4823C91.3876 25.0596 84.5935 34.4299 79.4605 46.2237C75.6748 54.9182 74.4531 56.6175 72.3719 56.0961C70.875 55.7196 68.6972 51.2444 69.1173 49.4099C69.9092 45.9872 72.6857 38.4658 73.328 38.012L74.0861 37.4713Z" fill="#595B60"/>
+      <path d="M75.0503 77.0575C74.6495 76.3092 73.8962 76.092 73.114 76.092C70.3761 76.092 66.8945 72.9733 63.8234 67.7644L61.0469 63.0575C62.2879 62.4975 63.4854 60.6485 64.5043 58.592L66.3585 54.8506C72.7132 66.4513 74.4708 68.0589 78.0683 68.2471L80.3619 68.3678C80.1736 69.3044 78.9809 71.2596 77.5854 73.3161L75.0503 77.0575Z" fill="#667266"/>
+    </svg>
+  );
+}
+
 // --- Components ---
 
 export function NavBar() {
@@ -52,8 +65,8 @@ export function NavBar() {
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-[#202020] rounded-xl flex items-center justify-center shadow-lg shadow-black/5 transition-transform group-hover:scale-105">
-              <Monitor className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/5 border border-black/5 transition-transform group-hover:scale-105">
+              <Logo className="w-6 h-6" />
             </div>
             <span className="text-xl font-bold tracking-tight text-[#202020]">Velo</span>
           </Link>
@@ -420,8 +433,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
         <div className="max-w-xs">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-[#202020] rounded-lg flex items-center justify-center text-white">
-              <Monitor className="w-4 h-4" />
+            <div className="w-8 h-8 bg-white border border-black/5 rounded-lg flex items-center justify-center">
+              <Logo className="w-5 h-5" />
             </div>
             <span className="text-lg font-bold text-[#202020]">Velo Studio</span>
           </div>
