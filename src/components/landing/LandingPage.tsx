@@ -65,7 +65,7 @@ export function NavBar() {
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/5 border border-black/5 transition-transform group-hover:scale-105">
+            <div className="w-10 h-10 bg-[#202020] rounded-xl flex items-center justify-center shadow-lg shadow-black/5 border border-black/5 transition-transform group-hover:scale-105">
               <Logo className="w-6 h-6" />
             </div>
             <span className="text-xl font-bold tracking-tight text-[#202020]">Velo</span>
@@ -433,7 +433,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
         <div className="max-w-xs">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-white border border-black/5 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#202020] border border-black/5 rounded-lg flex items-center justify-center">
               <Logo className="w-5 h-5" />
             </div>
             <span className="text-lg font-bold text-[#202020]">Velo Studio</span>
@@ -472,7 +472,7 @@ export function Footer() {
       </div>
       
       <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-black/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#5c5c5c]">
-        <p>© 2026 Velo Studio Inc. All rights reserved.</p>
+        <p>© 2026 Kainuo Innovision Tech Co., Limited. All rights reserved.</p>
         <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
             <span>All systems operational</span>
