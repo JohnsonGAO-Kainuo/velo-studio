@@ -1,5 +1,4 @@
-import { NavBar, Footer } from './LandingPage';
-import { motion } from 'framer-motion';
+// Legal pages are simple static pages; NavBar/Footer are provided by the route wrapper.
 
 export function PrivacyPolicy() {
   return (
