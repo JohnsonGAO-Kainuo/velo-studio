@@ -199,8 +199,8 @@ export function Hero() {
             const isAppleSilicon = navigator.userAgent.includes('Mac') && 
               (navigator.userAgent.includes('ARM') || navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0);
             const downloadUrl = isAppleSilicon 
-              ? 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.0.0/Velo%20Studio-Mac-arm64-1.0.0-Installer.dmg'
-              : 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.0.0/Velo%20Studio-Mac-x64-1.0.0-Installer.dmg';
+              ? 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.0.0/Velo.Studio-Mac-arm64-1.0.0-Installer.dmg'
+              : 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.0.0/Velo.Studio-Mac-x64-1.0.0-Installer.dmg';
             window.open(downloadUrl, '_blank');
           }}>
             <div className="outline" />
