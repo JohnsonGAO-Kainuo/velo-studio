@@ -63,4 +63,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlatform: () => {
     return ipcRenderer.invoke('get-platform')
   },
+  hideMainWindow: () => {
+    return ipcRenderer.invoke('hide-main-window')
+  },
+  showMainWindow: () => {
+    return ipcRenderer.invoke('show-main-window')
+  },
 })

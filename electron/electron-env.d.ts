@@ -42,6 +42,8 @@ interface Window {
     getPlatform: () => Promise<string>
     hudOverlayHide: () => void;
     hudOverlayClose: () => void;
+    hideMainWindow: () => Promise<void>;
+    showMainWindow: () => Promise<void>;
   }
 }
 

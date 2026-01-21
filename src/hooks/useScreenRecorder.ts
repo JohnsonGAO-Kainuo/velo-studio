@@ -141,6 +141,9 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
       };
       recorder.onstop = async () => {
         stream.current = null;
+        // Show main window again after recording stops
+        window.electronAPI?.showMainWindow();
+        
         if (chunks.current.length === 0) return;
         const duration = Date.now() - startTime.current;
         const recordedChunks = chunks.current;
@@ -172,6 +175,9 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
       recorder.start(1000);
       startTime.current = Date.now();
       setRecording(true);
+      
+      // Hide main window during recording to prevent it from appearing in the capture
+      window.electronAPI?.hideMainWindow();
       window.electronAPI?.setRecordingState(true);
     } catch (error) {
       console.error('Failed to start recording:', error);

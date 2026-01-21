@@ -54,6 +54,20 @@ export function registerIpcHandlers(
     createEditorWindow()
   })
 
+  // Hide/show main window during recording
+  ipcMain.handle('hide-main-window', () => {
+    const mainWin = getMainWindow()
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.hide()
+    }
+  })
+
+  ipcMain.handle('show-main-window', () => {
+    const mainWin = getMainWindow()
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.show()
+    }
+  })
 
 
   ipcMain.handle('store-recorded-video', async (_, videoData: ArrayBuffer, fileName: string) => {
@@ -75,7 +89,6 @@ export function registerIpcHandlers(
       }
     }
   })
-
 
 
   ipcMain.handle('get-recorded-video-path', async () => {
