@@ -69,7 +69,6 @@ export function WebRoutes() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/changelog" element={<ChangelogPage />} />
       </Routes>
       <Footer />
     </div>

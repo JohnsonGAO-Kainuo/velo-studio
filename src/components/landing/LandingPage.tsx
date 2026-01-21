@@ -73,11 +73,10 @@ export function NavBar() {
 
           <div className="hidden md:flex items-center">
             <div className="radio-inputs" role="tablist" aria-label="Main nav">
-              {[
+                {[
                 { key: "product", label: "Product", path: "/" },
                 { key: "features", label: "Features", path: "/features" },
                 { key: "pricing", label: "Pricing", path: "/pricing" },
-                { key: "changelog", label: "Changelog", path: "/changelog" },
               ].map((it) => (
                 <div className="radio" key={it.key}>
                   <Link to={it.path}>
@@ -448,13 +447,12 @@ export function Footer() {
       </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-12 w-full md:w-auto">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-12 w-full md:w-auto">
           <div>
             <h4 className="text-[#202020] font-bold text-sm mb-6">Product</h4>
             <ul className="flex flex-col gap-3">
               <li><Link to="/features" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Features</Link></li>
               <li><Link to="/pricing" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Pricing</Link></li>
-              <li><Link to="/changelog" className="text-[#5c5c5c] hover:text-[#202020] transition-colors text-sm font-medium">Changelog</Link></li>
             </ul>
           </div>
           <div>
