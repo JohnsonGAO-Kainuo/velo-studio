@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Rnd } from "react-rnd";
-import type { AnnotationRegion } from "./types";
+import type { AnnotationRegion, AnnotationTextStyle, BlurStyle } from "./types";
 import { cn } from "@/lib/utils";
 import { getArrowComponent } from "./ArrowSvgs";
 
@@ -45,26 +45,27 @@ export function AnnotationOverlay({
 
   const renderContent = () => {
     switch (annotation.type) {
-      case 'text':
+      case 'text': {
+        const textStyle = annotation.style as AnnotationTextStyle;
         return (
           <div
             className="w-full h-full flex items-center p-2 overflow-hidden"
             style={{
-              justifyContent: annotation.style.textAlign === 'left' ? 'flex-start' : 
-                            annotation.style.textAlign === 'right' ? 'flex-end' : 'center',
+              justifyContent: textStyle.textAlign === 'left' ? 'flex-start' : 
+                            textStyle.textAlign === 'right' ? 'flex-end' : 'center',
               alignItems: 'center',
             }}
           >
             <span
               style={{
-                color: annotation.style.color,
-                backgroundColor: annotation.style.backgroundColor,
-                fontSize: `${annotation.style.fontSize}px`,
-                fontFamily: annotation.style.fontFamily,
-                fontWeight: annotation.style.fontWeight,
-                fontStyle: annotation.style.fontStyle,
-                textDecoration: annotation.style.textDecoration,
-                textAlign: annotation.style.textAlign,
+                color: textStyle.color,
+                backgroundColor: textStyle.backgroundColor,
+                fontSize: `${textStyle.fontSize}px`,
+                fontFamily: textStyle.fontFamily,
+                fontWeight: textStyle.fontWeight,
+                fontStyle: textStyle.fontStyle,
+                textDecoration: textStyle.textDecoration,
+                textAlign: textStyle.textAlign,
                 wordBreak: 'break-word',
                 whiteSpace: 'pre-wrap',
                 boxDecorationBreak: 'clone',
@@ -78,6 +79,30 @@ export function AnnotationOverlay({
             </span>
           </div>
         );
+      }
+
+      case 'blur': {
+        const blurStyle = annotation.style as BlurStyle;
+        const intensity = blurStyle.intensity || 20;
+        
+        return (
+          <div 
+            className="w-full h-full relative"
+            style={{
+              backgroundColor: blurStyle.type === 'blackout' ? 'black' : 'rgba(128, 128, 128, 0.5)',
+              backdropFilter: blurStyle.type === 'blur' ? `blur(${intensity / 5}px)` : 
+                             blurStyle.type === 'pixelate' ? 'blur(2px)' : 'none',
+              borderRadius: '4px',
+            }}
+          >
+            {blurStyle.label && (
+              <div className="absolute inset-0 flex items-center justify-center text-white/50 text-xs font-medium">
+                {blurStyle.label}
+              </div>
+            )}
+          </div>
+        );
+      }
 
       case 'image':
         if (annotation.content && annotation.content.startsWith('data:image')) {

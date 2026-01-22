@@ -35,9 +35,9 @@ const buttonVariants = cva(
         // Success/Accent - for positive actions
         accent:
           "bg-[#34B27B] text-white border border-[#2a9a6a] rounded-[22px] shadow-sm hover:bg-[#2da06e] active:scale-[0.98]",
-        // Recording state - red
+        // Recording state - red (no pulse animation for a calmer UX)
         recording:
-          "bg-[#ef4444] text-white border border-[#dc2626] rounded-[22px] shadow-sm hover:bg-[#dc2626] active:scale-[0.98] animate-pulse",
+          "bg-[#ef4444] text-white border border-[#dc2626] rounded-[22px] shadow-sm hover:bg-[#dc2626] active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-5 py-2",

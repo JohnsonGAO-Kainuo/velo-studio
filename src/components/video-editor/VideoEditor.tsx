@@ -31,9 +31,9 @@ import {
 import { VideoExporter, GifExporter, type ExportProgress, type ExportQuality, type ExportSettings, type ExportFormat, type GifFrameRate, type GifSizePreset, GIF_SIZE_PRESETS, calculateOutputDimensions } from "@/lib/exporter";
 import { type AspectRatio, getAspectRatioValue } from "@/utils/aspectRatioUtils";
 import { getAssetPath } from "@/lib/assetPath";
-
-const WALLPAPER_COUNT = 18;
-const WALLPAPER_PATHS = Array.from({ length: WALLPAPER_COUNT }, (_, i) => `/wallpapers/wallpaper${i + 1}.jpg`);
+import { generateAutoZoomRegions, deserializeCursorData, type CursorTrackingData } from "@/lib/cursorTracker";
+import { quickScanVideo } from "@/lib/videoOcrScanner";
+import { DEFAULT_CONFIG as DEFAULT_SENSITIVE_CONFIG } from "@/lib/sensitiveDetector";
 
 export default function VideoEditor() {
   const [videoPath, setVideoPath] = useState<string | null>(null);
@@ -42,7 +42,8 @@ export default function VideoEditor() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [wallpaper, setWallpaper] = useState<string>(WALLPAPER_PATHS[0]);
+  // Initialize with empty string, will be resolved by useEffect
+  const [wallpaper, setWallpaper] = useState<string>('');
   const [shadowIntensity, setShadowIntensity] = useState(0);
   const [showBlur, setShowBlur] = useState(false);
   const [motionBlurEnabled, setMotionBlurEnabled] = useState(true);
@@ -65,6 +66,9 @@ export default function VideoEditor() {
   const [gifFrameRate, setGifFrameRate] = useState<GifFrameRate>(15);
   const [gifLoop, setGifLoop] = useState(true);
   const [gifSizePreset, setGifSizePreset] = useState<GifSizePreset>('medium');
+  const [cursorData, setCursorData] = useState<CursorTrackingData | null>(null);
+  const [isGeneratingAutoZoom, setIsGeneratingAutoZoom] = useState(false);
+  const [isScanningPrivacy, setIsScanningPrivacy] = useState(false);
 
   const videoPlaybackRef = useRef<VideoPlaybackRef>(null);
   const nextZoomIdRef = useRef(1);
@@ -100,6 +104,24 @@ export default function VideoEditor() {
           if (result.success && result.path) {
             const videoUrl = toFileUrl(result.path);
             setVideoPath(videoUrl);
+            
+            // Try to load cursor tracking data for auto-zoom
+            if (window.electronAPI?.loadCursorData) {
+              try {
+                const cursorResult = await window.electronAPI.loadCursorData(result.path);
+                if (cursorResult.success && cursorResult.data) {
+                  const parsedData = deserializeCursorData(cursorResult.data);
+                  if (parsedData) {
+                    setCursorData(parsedData);
+                    console.log('[Auto-Zoom] Loaded cursor data:', parsedData.events.length, 'events');
+                  }
+                } else {
+                  console.log('[Auto-Zoom] No cursor data file found for this video');
+                }
+              } catch (err) {
+                console.log('[Auto-Zoom] Failed to load cursor data:', err);
+              }
+            }
             return;
           }
         }
@@ -132,6 +154,129 @@ export default function VideoEditor() {
     })();
     return () => { mounted = false };
   }, []);
+
+  // Auto-zoom generation function
+  const handleAutoZoom = useCallback(async () => {
+    if (!cursorData || cursorData.events.length === 0) {
+      toast.error('No cursor data available for this recording');
+      return;
+    }
+
+    setIsGeneratingAutoZoom(true);
+    try {
+      const autoRegions = generateAutoZoomRegions(cursorData);
+      
+      if (autoRegions.length === 0) {
+        toast.info('No significant cursor activity detected');
+        return;
+      }
+
+      // Convert auto-zoom regions to ZoomRegion format
+      const newZoomRegions: ZoomRegion[] = autoRegions.map((region, index) => ({
+        id: `auto-zoom-${nextZoomIdRef.current + index}`,
+        startMs: Math.round(region.startTime * 1000),
+        endMs: Math.round(region.endTime * 1000),
+        depth: region.depth, // Already ZoomDepthLevel (1-6)
+        focus: { cx: region.x, cy: region.y },
+      }));
+
+      // Update next ID counter
+      nextZoomIdRef.current += newZoomRegions.length;
+
+      // Add to existing zoom regions
+      setZoomRegions(prev => [...prev, ...newZoomRegions]);
+      
+      toast.success(`Generated ${newZoomRegions.length} auto-zoom regions`);
+    } catch (err) {
+      console.error('[Auto-Zoom] Error generating regions:', err);
+      toast.error('Failed to generate auto-zoom regions');
+    } finally {
+      setIsGeneratingAutoZoom(false);
+    }
+  }, [cursorData]);
+
+  // Privacy scan function - detect and blur sensitive information
+  const handlePrivacyScan = useCallback(async () => {
+    const playback = videoPlaybackRef.current;
+    const video = playback?.video;
+    
+    if (!video) {
+      toast.error('Video not loaded');
+      return;
+    }
+
+    setIsScanningPrivacy(true);
+    const scanToastId = toast.loading('Starting privacy scan...');
+
+    try {
+      // Pause video during scan
+      const wasPlaying = isPlaying;
+      if (wasPlaying) {
+        playback.pause();
+      }
+
+      const result = await quickScanVideo(
+        video,
+        DEFAULT_SENSITIVE_CONFIG,
+        (progress) => {
+          toast.loading(progress.message, { id: scanToastId });
+        }
+      );
+
+      if (result.regions.length === 0) {
+        toast.info('No sensitive information detected', { id: scanToastId });
+        return;
+      }
+
+      // Convert detected regions to annotation blur regions
+      const newAnnotations: AnnotationRegion[] = result.regions.map((region, index) => ({
+        id: `privacy-blur-${nextAnnotationIdRef.current + index}`,
+        startMs: region.startMs,
+        endMs: region.endMs,
+        type: 'blur' as const,
+        content: region.patternName, // Store what was detected
+        // Convert bounds from video-relative to stage-relative
+        // The bounds are already normalized (0-1), so we can use them directly
+        position: {
+          x: region.bounds.x,
+          y: region.bounds.y,
+        },
+        size: {
+          // Add some padding around the detected text
+          width: Math.min(region.bounds.width * 1.2 + 0.02, 0.5),
+          height: Math.min(region.bounds.height * 1.5 + 0.02, 0.2),
+        },
+        style: {
+          type: 'blur' as const,
+          intensity: 50,
+          label: region.patternName,
+        },
+        zIndex: nextAnnotationZIndexRef.current + index,
+        figureData: DEFAULT_FIGURE_DATA,
+      }));
+
+      nextAnnotationIdRef.current += newAnnotations.length;
+      nextAnnotationZIndexRef.current += newAnnotations.length;
+
+      setAnnotationRegions(prev => [...prev, ...newAnnotations]);
+      
+      toast.success(`Found and blurred ${result.regions.length} sensitive items`, {
+        id: scanToastId,
+        description: `Scan completed in ${(result.duration / 1000).toFixed(1)}s`,
+      });
+
+      // Resume video if it was playing
+      if (wasPlaying) {
+        playback.play().catch(() => {});
+      }
+
+    } catch (err) {
+      console.error('[Privacy Scan] Error:', err);
+      toast.error('Failed to scan for sensitive information', { id: scanToastId });
+    } finally {
+      setIsScanningPrivacy(false);
+    }
+  }, [isPlaying]);
 
   function togglePlayPause() {
     const playback = videoPlaybackRef.current;
@@ -304,6 +449,58 @@ export default function VideoEditor() {
     );
   }, []);
 
+  // Quick add zoom at playhead position
+  const handleQuickAddZoom = useCallback((timeMs: number) => {
+    const duration = Math.min(1000, (videoPlaybackRef.current?.video?.duration || 1) * 1000 - timeMs);
+    if (duration <= 0) return;
+    
+    const id = `zoom-${nextZoomIdRef.current++}`;
+    const newRegion: ZoomRegion = {
+      id,
+      startMs: timeMs,
+      endMs: timeMs + duration,
+      depth: 3, // Default zoom depth
+      focus: { cx: 0.5, cy: 0.5 }, // Center focus
+    };
+    setZoomRegions((prev) => [...prev, newRegion]);
+    setSelectedZoomId(id);
+    toast.success('Zoom added at current position');
+  }, []);
+
+  // Quick add blur at cursor position
+  const handleQuickAddBlur = useCallback((timeMs: number, position: { x: number; y: number }) => {
+    const duration = Math.min(2000, (videoPlaybackRef.current?.video?.duration || 1) * 1000 - timeMs);
+    if (duration <= 0) return;
+    
+    const id = `blur-${nextAnnotationIdRef.current++}`;
+    const zIndex = nextAnnotationZIndexRef.current++;
+    const newRegion: AnnotationRegion = {
+      id,
+      startMs: timeMs,
+      endMs: timeMs + duration,
+      type: 'blur',
+      content: 'Manual Blur',
+      position: {
+        x: Math.max(5, Math.min(85, position.x - 10)), // Center the 20% width box around cursor
+        y: Math.max(5, Math.min(85, position.y - 10)), // Center the 20% height box around cursor
+      },
+      size: {
+        width: 20,
+        height: 20,
+      },
+      style: {
+        type: 'blur',
+        intensity: 30,
+        label: 'Manual Blur',
+      },
+      zIndex,
+      figureData: DEFAULT_FIGURE_DATA,
+    };
+    setAnnotationRegions((prev) => [...prev, newRegion]);
+    setSelectedAnnotationId(id);
+    toast.success('Blur region added');
+  }, []);
+
   const handleAnnotationDelete = useCallback((id: string) => {
     setAnnotationRegions((prev) => prev.filter((region) => region.id !== id));
     if (selectedAnnotationId === id) {
@@ -336,16 +533,22 @@ export default function VideoEditor() {
         
         const updatedRegion = { ...region, type };
         
-        // Restore content from type-specific storage
+        // Restore content from type-specific storage and update style
         if (type === 'text') {
           updatedRegion.content = region.textContent || 'Enter text...';
+          updatedRegion.style = { ...DEFAULT_ANNOTATION_STYLE };
         } else if (type === 'image') {
           updatedRegion.content = region.imageContent || '';
+          updatedRegion.style = { ...DEFAULT_ANNOTATION_STYLE };
         } else if (type === 'figure') {
           updatedRegion.content = '';
+          updatedRegion.style = { ...DEFAULT_ANNOTATION_STYLE };
           if (!region.figureData) {
             updatedRegion.figureData = { ...DEFAULT_FIGURE_DATA };
           }
+        } else if (type === 'blur') {
+          updatedRegion.content = 'Privacy blur';
+          updatedRegion.style = { type: 'blur', intensity: 30, label: 'Privacy blur' };
         }
         
         return updatedRegion;
@@ -789,6 +992,8 @@ export default function VideoEditor() {
                       onSelectAnnotation={handleSelectAnnotation}
                       onAnnotationPositionChange={handleAnnotationPositionChange}
                       onAnnotationSizeChange={handleAnnotationSizeChange}
+                      onQuickAddZoom={handleQuickAddZoom}
+                      onQuickAddBlur={handleQuickAddBlur}
                     />
                   </div>
                 </div>
@@ -838,6 +1043,11 @@ export default function VideoEditor() {
               onSelectAnnotation={handleSelectAnnotation}
               aspectRatio={aspectRatio}
               onAspectRatioChange={setAspectRatio}
+              hasCursorData={cursorData !== null && cursorData.events.length > 0}
+              isGeneratingAutoZoom={isGeneratingAutoZoom}
+              onAutoZoom={handleAutoZoom}
+              isScanningPrivacy={isScanningPrivacy}
+              onPrivacyScan={handlePrivacyScan}
             />
               </div>
             </Panel>

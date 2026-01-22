@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, Download, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { PushButton } from '@/components/ui/push-button';
 import type { ExportProgress } from '@/lib/exporter';
 
 interface ExportDialogProps {
@@ -105,14 +105,12 @@ export function ExportDialog({
             )}
           </div>
           {!isExporting && (
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={onClose}
-              className="hover:bg-neutral-100 text-neutral-500 hover:text-white rounded-full"
+              className="hover:bg-neutral-100 text-neutral-500 hover:text-neutral-800 rounded-full w-8 h-8 flex items-center justify-center transition-all active:scale-95"
             >
               <X className="w-5 h-5" />
-            </Button>
+            </button>
           )}
         </div>
 
@@ -199,13 +197,14 @@ export function ExportDialog({
 
             {onCancel && (
               <div className="pt-2">
-                <Button
+                <PushButton
                   onClick={onCancel}
-                  variant="destructive"
-                  className="w-full py-6 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all rounded-xl"
+                  variant="danger"
+                  size="lg"
+                  className="w-full flex items-center justify-center"
                 >
                   Cancel Export
-                </Button>
+                </PushButton>
               </div>
             )}
           </div>

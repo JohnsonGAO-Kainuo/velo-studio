@@ -1,17 +1,30 @@
 import { useState, useRef, useEffect } from "react";
 import { fixWebmDuration } from "@fix-webm-duration/fix";
+import { serializeCursorData, type CursorTrackingData } from "@/lib/cursorTracker";
+
+interface UseScreenRecorderOptions {
+  autoZoomEnabled?: boolean;
+}
 
 type UseScreenRecorderReturn = {
   recording: boolean;
   toggleRecording: () => void;
 };
 
-export function useScreenRecorder(): UseScreenRecorderReturn {
+export function useScreenRecorder(options: UseScreenRecorderOptions = {}): UseScreenRecorderReturn {
+  const { autoZoomEnabled = true } = options;
   const [recording, setRecording] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const chunks = useRef<Blob[]>([]);
   const startTime = useRef<number>(0);
+  const cursorTrackingInfo = useRef<{ screenWidth: number; screenHeight: number } | null>(null);
+  const autoZoomEnabledRef = useRef(autoZoomEnabled);
+  
+  // Keep ref in sync with prop
+  useEffect(() => {
+    autoZoomEnabledRef.current = autoZoomEnabled;
+  }, [autoZoomEnabled]);
 
   // Target visually lossless 4K @ 60fps; fall back gracefully when hardware cannot keep up
   const TARGET_FRAME_RATE = 60;
@@ -87,6 +100,24 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
         return;
       }
 
+      // Start cursor tracking for auto-zoom feature (only if enabled)
+      if (autoZoomEnabledRef.current) {
+        try {
+          const trackingResult = await window.electronAPI.startCursorTracking();
+          if (trackingResult.success && trackingResult.screenWidth && trackingResult.screenHeight) {
+            cursorTrackingInfo.current = {
+              screenWidth: trackingResult.screenWidth,
+              screenHeight: trackingResult.screenHeight
+            };
+            console.log('[Cursor Tracking] Started:', trackingResult);
+          }
+        } catch (err) {
+          console.warn('[Cursor Tracking] Failed to start:', err);
+        }
+      } else {
+        console.log('[Cursor Tracking] Skipped (Auto Zoom disabled)');
+      }
+
       const mediaStream = await (navigator.mediaDevices as any).getUserMedia({
         audio: false,
         video: {
@@ -141,8 +172,8 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
       };
       recorder.onstop = async () => {
         stream.current = null;
-        // Show main window again after recording stops
-        window.electronAPI?.showMainWindow();
+        
+        // Window is always visible with content protection, no need to restore
         
         if (chunks.current.length === 0) return;
         const duration = Date.now() - startTime.current;
@@ -162,6 +193,27 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
             return;
           }
 
+          // Stop cursor tracking and save data
+          try {
+            const cursorData = await window.electronAPI.stopCursorTracking();
+            if (cursorData && cursorData.events && cursorData.events.length > 0 && videoResult.path) {
+              const trackingData: CursorTrackingData = {
+                events: cursorData.events.map(e => ({
+                  ...e,
+                  type: e.type as 'move' | 'click' | 'scroll'
+                })),
+                screenWidth: cursorData.screenWidth,
+                screenHeight: cursorData.screenHeight,
+                duration: cursorData.duration
+              };
+              const serialized = serializeCursorData(trackingData);
+              await window.electronAPI.saveCursorData(videoResult.path, serialized);
+              console.log('[Cursor Tracking] Saved', cursorData.events.length, 'events');
+            }
+          } catch (err) {
+            console.warn('[Cursor Tracking] Failed to save:', err);
+          }
+
           if (videoResult.path) {
             await window.electronAPI.setCurrentVideoPath(videoResult.path);
           }
@@ -172,13 +224,13 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
         }
       };
       recorder.onerror = () => setRecording(false);
+      
+      // No need to hide window - setContentProtection(true) makes it invisible to capture
       recorder.start(1000);
       startTime.current = Date.now();
-      setRecording(true);
       
-      // Hide main window during recording to prevent it from appearing in the capture
-      window.electronAPI?.hideMainWindow();
       window.electronAPI?.setRecordingState(true);
+      setRecording(true);
     } catch (error) {
       console.error('Failed to start recording:', error);
       setRecording(false);

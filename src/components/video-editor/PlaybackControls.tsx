@@ -1,6 +1,5 @@
-import { Button } from "../ui/button";
+import { PushButton } from "../ui/push-button";
 import { Play, Pause } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface PlaybackControlsProps {
   isPlaying: boolean;
@@ -32,15 +31,12 @@ export default function PlaybackControls({
 
   return (
     <div className="flex items-center gap-2 px-1 py-0.5 rounded-full bg-white/90 backdrop-blur-md border border-neutral-200 shadow-sm transition-all duration-300 hover:bg-white hover:border-neutral-300">
-      <Button
+      <PushButton
         onClick={onTogglePlayPause}
-        size="icon"
-        className={cn(
-          "w-8 h-8 rounded-full transition-all duration-200 border border-neutral-200",
-          isPlaying 
-            ? "bg-neutral-100 text-neutral-700 hover:bg-neutral-200" 
-            : "bg-[#34B27B] text-white hover:bg-[#34B27B]/90 hover:scale-105 shadow-sm"
-        )}
+        variant={isPlaying ? "ghost" : "accent"}
+        size="sm"
+        className="w-8 h-8 !p-0 flex items-center justify-center"
+        style={{ borderRadius: "50%" }}
         aria-label={isPlaying ? 'Pause' : 'Play'}
       >
         {isPlaying ? (
@@ -48,7 +44,7 @@ export default function PlaybackControls({
         ) : (
           <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
         )}
-      </Button>
+      </PushButton>
       
       <span className="text-[9px] font-medium text-neutral-600 tabular-nums w-[30px] text-right">
         {formatTime(currentTime)}

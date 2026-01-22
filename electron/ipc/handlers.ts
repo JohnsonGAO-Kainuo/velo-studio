@@ -1,10 +1,16 @@
-import { ipcMain, desktopCapturer, BrowserWindow, shell, app, dialog } from 'electron'
+import { ipcMain, desktopCapturer, BrowserWindow, shell, app, dialog, screen } from 'electron'
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { RECORDINGS_DIR } from '../main'
 
 let selectedSource: any = null
+
+// Cursor tracking state
+let cursorTrackingActive = false
+let cursorEvents: Array<{x: number, y: number, timestamp: number, type: string, button?: number}> = []
+let cursorTrackingStartTime = 0
+let cursorTrackingInterval: NodeJS.Timeout | null = null
 
 export function registerIpcHandlers(
   createEditorWindow: () => void,
@@ -54,7 +60,7 @@ export function registerIpcHandlers(
     createEditorWindow()
   })
 
-  // Hide/show main window during recording
+  // Hide/show/minimize/restore main window during recording
   ipcMain.handle('hide-main-window', () => {
     const mainWin = getMainWindow()
     if (mainWin && !mainWin.isDestroyed()) {
@@ -65,6 +71,23 @@ export function registerIpcHandlers(
   ipcMain.handle('show-main-window', () => {
     const mainWin = getMainWindow()
     if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.show()
+    }
+  })
+
+  ipcMain.handle('minimize-main-window', () => {
+    const mainWin = getMainWindow()
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.minimize()
+    }
+  })
+
+  ipcMain.handle('restore-main-window', () => {
+    const mainWin = getMainWindow()
+    if (mainWin && !mainWin.isDestroyed()) {
+      if (mainWin.isMinimized()) {
+        mainWin.restore()
+      }
       mainWin.show()
     }
   })
@@ -132,9 +155,11 @@ export function registerIpcHandlers(
   ipcMain.handle('get-asset-base-path', () => {
     try {
       if (app.isPackaged) {
+        // In production: Resources/assets/wallpapers/...
         return path.join(process.resourcesPath, 'assets')
       }
-      return path.join(app.getAppPath(), 'public', 'assets')
+      // In development: public/wallpapers/... (no assets subfolder)
+      return path.join(app.getAppPath(), 'public')
     } catch (err) {
       console.error('Failed to resolve asset base path:', err)
       return null
@@ -236,4 +261,99 @@ export function registerIpcHandlers(
   ipcMain.handle('get-platform', () => {
     return process.platform;
   });
+
+  // Cursor tracking handlers
+  ipcMain.handle('start-cursor-tracking', () => {
+    const primaryDisplay = screen.getPrimaryDisplay()
+    const { width, height } = primaryDisplay.size
+    
+    cursorEvents = []
+    cursorTrackingStartTime = Date.now()
+    cursorTrackingActive = true
+    
+    // Sample cursor position at 30fps
+    cursorTrackingInterval = setInterval(() => {
+      if (!cursorTrackingActive) return
+      
+      const point = screen.getCursorScreenPoint()
+      const timestamp = Date.now() - cursorTrackingStartTime
+      
+      // Normalize coordinates to 0-1 range
+      cursorEvents.push({
+        x: point.x / width,
+        y: point.y / height,
+        timestamp,
+        type: 'move'
+      })
+    }, 33) // ~30fps
+    
+    return { success: true, screenWidth: width, screenHeight: height }
+  })
+
+  ipcMain.handle('stop-cursor-tracking', () => {
+    cursorTrackingActive = false
+    if (cursorTrackingInterval) {
+      clearInterval(cursorTrackingInterval)
+      cursorTrackingInterval = null
+    }
+    
+    const duration = Date.now() - cursorTrackingStartTime
+    const primaryDisplay = screen.getPrimaryDisplay()
+    const { width, height } = primaryDisplay.size
+    
+    const result = {
+      events: cursorEvents,
+      screenWidth: width,
+      screenHeight: height,
+      duration
+    }
+    
+    // Clear events after returning
+    cursorEvents = []
+    
+    return result
+  })
+
+  ipcMain.handle('record-cursor-click', (_, button: number) => {
+    if (!cursorTrackingActive) return { success: false }
+    
+    const primaryDisplay = screen.getPrimaryDisplay()
+    const { width, height } = primaryDisplay.size
+    const point = screen.getCursorScreenPoint()
+    const timestamp = Date.now() - cursorTrackingStartTime
+    
+    cursorEvents.push({
+      x: point.x / width,
+      y: point.y / height,
+      timestamp,
+      type: 'click',
+      button
+    })
+    
+    return { success: true }
+  })
+
+  // Save cursor data alongside video
+  ipcMain.handle('save-cursor-data', async (_, videoPath: string, cursorData: string) => {
+    try {
+      const cursorPath = videoPath.replace(/\.\w+$/, '.cursor.json')
+      await fs.writeFile(cursorPath, cursorData, 'utf-8')
+      return { success: true, path: cursorPath }
+    } catch (err) {
+      console.error('Failed to save cursor data:', err)
+      return { success: false, error: String(err) }
+    }
+  })
+
+  // Load cursor data for a video
+  ipcMain.handle('load-cursor-data', async (_, videoPath: string) => {
+    try {
+      const cursorPath = videoPath.replace(/\.\w+$/, '.cursor.json')
+      const data = await fs.readFile(cursorPath, 'utf-8')
+      return { success: true, data }
+    } catch (err) {
+      // File might not exist, that's okay
+      return { success: false, error: String(err) }
+    }
+  })
 }

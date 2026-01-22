@@ -13,6 +13,7 @@ import { applyZoomTransform } from "./videoPlayback/zoomTransform";
 import { createVideoEventHandlers } from "./videoPlayback/videoEventHandlers";
 import { type AspectRatio, formatAspectRatioForCSS } from "@/utils/aspectRatioUtils";
 import { AnnotationOverlay } from "./AnnotationOverlay";
+import { VideoInteractionOverlay } from "./VideoInteractionOverlay";
 
 interface VideoPlaybackProps {
   videoPath: string;
@@ -41,6 +42,8 @@ interface VideoPlaybackProps {
   onSelectAnnotation?: (id: string | null) => void;
   onAnnotationPositionChange?: (id: string, position: { x: number; y: number }) => void;
   onAnnotationSizeChange?: (id: string, size: { width: number; height: number }) => void;
+  onQuickAddZoom?: (timeMs: number) => void;
+  onQuickAddBlur?: (timeMs: number, position: { x: number; y: number }) => void;
 }
 
 export interface VideoPlaybackRef {
@@ -80,6 +83,8 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
   onSelectAnnotation,
   onAnnotationPositionChange,
   onAnnotationSizeChange,
+  onQuickAddZoom,
+  onQuickAddBlur,
 }, ref) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -642,6 +647,25 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
         const zoomScale = ZOOM_DEPTH_SCALES[region.depth];
         const regionFocus = clampFocusToStage(region.focus, region.depth);
         
+        // Debug: Log auto-zoom region data
+        if (region.id?.startsWith('auto-zoom')) {
+          console.log('[Auto-Zoom Debug]', {
+            regionId: region.id,
+            rawFocus: region.focus,
+            clampedFocus: regionFocus,
+            zoomScale,
+            strength,
+            stageSize: stageSizeRef.current,
+          });
+        }
+        
+        // Validate focus values - if invalid, skip this zoom
+        if (isNaN(regionFocus.cx) || isNaN(regionFocus.cy) || 
+            !isFinite(regionFocus.cx) || !isFinite(regionFocus.cy)) {
+          console.error('[Auto-Zoom Error] Invalid focus values:', regionFocus);
+          return;
+        }
+        
         // Interpolate scale and focus based on region strength
         targetScaleFactor = 1 + (zoomScale - 1) * strength;
         targetFocus = {
@@ -736,13 +760,17 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
     let mounted = true
     ;(async () => {
       try {
+        console.log('[VideoPlayback] Wallpaper changed:', wallpaper)
+        
         if (!wallpaper) {
           const def = await getAssetPath('wallpapers/wallpaper1.jpg')
+          console.log('[VideoPlayback] No wallpaper, using default:', def)
           if (mounted) setResolvedWallpaper(def)
           return
         }
 
         if (wallpaper.startsWith('#') || wallpaper.startsWith('linear-gradient') || wallpaper.startsWith('radial-gradient')) {
+          console.log('[VideoPlayback] Color/gradient wallpaper:', wallpaper)
           if (mounted) setResolvedWallpaper(wallpaper)
           return
         }
@@ -754,21 +782,30 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
         }
 
         // If it's an absolute web/http or file path, use as-is
-        if (wallpaper.startsWith('http') || wallpaper.startsWith('file://') || wallpaper.startsWith('/')) {
+        if (wallpaper.startsWith('http') || wallpaper.startsWith('file://') || wallpaper.startsWith('velo-asset://') || wallpaper.startsWith('/')) {
           // If it's an absolute server path (starts with '/'), resolve via getAssetPath as well
           if (wallpaper.startsWith('/')) {
             const rel = wallpaper.replace(/^\//, '')
             const p = await getAssetPath(rel)
+            console.log('[VideoPlayback] Resolved server path:', wallpaper, '->', p)
             if (mounted) setResolvedWallpaper(p)
             return
           }
+          console.log('[VideoPlayback] Using wallpaper as-is:', wallpaper)
           if (mounted) setResolvedWallpaper(wallpaper)
           return
         }
         const p = await getAssetPath(wallpaper.replace(/^\//, ''))
+        console.log('[VideoPlayback] Resolved relative path:', wallpaper, '->', p)
         if (mounted) setResolvedWallpaper(p)
       } catch (err) {
-        if (mounted) setResolvedWallpaper(wallpaper || '/wallpapers/wallpaper1.jpg')
+        // On error, try to resolve default wallpaper
+        try {
+          const def = await getAssetPath('wallpapers/wallpaper1.jpg')
+          if (mounted) setResolvedWallpaper(def)
+        } catch {
+          if (mounted) setResolvedWallpaper(wallpaper || '')
+        }
       }
     })()
     return () => { mounted = false }
@@ -783,7 +820,16 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
     };
   }, [])
 
-  const isImageUrl = Boolean(resolvedWallpaper && (resolvedWallpaper.startsWith('file://') || resolvedWallpaper.startsWith('http') || resolvedWallpaper.startsWith('/') || resolvedWallpaper.startsWith('data:')))
+  // Check if wallpaper is an image URL (including custom velo-asset:// protocol)
+  const isImageUrl = Boolean(
+    resolvedWallpaper && (
+      resolvedWallpaper.startsWith('velo-asset://') ||
+      resolvedWallpaper.startsWith('file://') ||
+      resolvedWallpaper.startsWith('http') ||
+      resolvedWallpaper.startsWith('/') ||
+      resolvedWallpaper.startsWith('data:')
+    )
+  )
   const backgroundStyle = isImageUrl
     ? { backgroundImage: `url(${resolvedWallpaper || ''})` }
     : { background: resolvedWallpaper || '' };
@@ -809,65 +855,79 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
       />
       {/* Only render overlay after PIXI and video are fully initialized */}
       {pixiReady && videoReady && (
-        <div
-          ref={overlayRef}
-          className="absolute inset-0 select-none"
-          style={{ pointerEvents: 'none' }}
-          onPointerDown={handleOverlayPointerDown}
-          onPointerMove={handleOverlayPointerMove}
-          onPointerUp={handleOverlayPointerUp}
-          onPointerLeave={handleOverlayPointerLeave}
-        >
+        <>
+          {/* Annotation overlays */}
           <div
-            ref={focusIndicatorRef}
-            className="absolute rounded-md border border-[#34B27B]/80 bg-[#34B27B]/20 shadow-[0_0_0_1px_rgba(52,178,123,0.35)]"
-            style={{ display: 'none', pointerEvents: 'none' }}
-          />
-          {(() => {
-            const filtered = (annotationRegions || []).filter((annotation) => {
-              if (typeof annotation.startMs !== 'number' || typeof annotation.endMs !== 'number') return false;
+            ref={overlayRef}
+            className="absolute inset-0 select-none"
+            style={{ pointerEvents: 'none' }}
+            onPointerDown={handleOverlayPointerDown}
+            onPointerMove={handleOverlayPointerMove}
+            onPointerUp={handleOverlayPointerUp}
+            onPointerLeave={handleOverlayPointerLeave}
+          >
+            <div
+              ref={focusIndicatorRef}
+              className="absolute rounded-md border border-[#34B27B]/80 bg-[#34B27B]/20 shadow-[0_0_0_1px_rgba(52,178,123,0.35)]"
+              style={{ display: 'none', pointerEvents: 'none' }}
+            />
+            {(() => {
+              const filtered = (annotationRegions || []).filter((annotation) => {
+                if (typeof annotation.startMs !== 'number' || typeof annotation.endMs !== 'number') return false;
+                
+                if (annotation.id === selectedAnnotationId) return true;
+                
+                const timeMs = Math.round(currentTime * 1000);
+                return timeMs >= annotation.startMs && timeMs <= annotation.endMs;
+              });
               
-              if (annotation.id === selectedAnnotationId) return true;
+              // Sort by z-index (lowest to highest) so higher z-index renders on top
+              const sorted = [...filtered].sort((a, b) => a.zIndex - b.zIndex);
               
-              const timeMs = Math.round(currentTime * 1000);
-              return timeMs >= annotation.startMs && timeMs <= annotation.endMs;
-            });
-            
-            // Sort by z-index (lowest to highest) so higher z-index renders on top
-            const sorted = [...filtered].sort((a, b) => a.zIndex - b.zIndex);
-            
-            // Handle click-through cycling: when clicking same annotation, cycle to next
-            const handleAnnotationClick = (clickedId: string) => {
-              if (!onSelectAnnotation) return;
+              // Handle click-through cycling: when clicking same annotation, cycle to next
+              const handleAnnotationClick = (clickedId: string) => {
+                if (!onSelectAnnotation) return;
+                
+                // If clicking on already selected annotation and there are multiple overlapping
+                if (clickedId === selectedAnnotationId && sorted.length > 1) {
+                  // Find current index and cycle to next
+                  const currentIndex = sorted.findIndex(a => a.id === clickedId);
+                  const nextIndex = (currentIndex + 1) % sorted.length;
+                  onSelectAnnotation(sorted[nextIndex].id);
+                } else {
+                  // First click or clicking different annotation
+                  onSelectAnnotation(clickedId);
+                }
+              };
               
-              // If clicking on already selected annotation and there are multiple overlapping
-              if (clickedId === selectedAnnotationId && sorted.length > 1) {
-                // Find current index and cycle to next
-                const currentIndex = sorted.findIndex(a => a.id === clickedId);
-                const nextIndex = (currentIndex + 1) % sorted.length;
-                onSelectAnnotation(sorted[nextIndex].id);
-              } else {
-                // First click or clicking different annotation
-                onSelectAnnotation(clickedId);
-              }
-            };
-            
-            return sorted.map((annotation) => (
-              <AnnotationOverlay
-                key={annotation.id}
-                annotation={annotation}
-                isSelected={annotation.id === selectedAnnotationId}
-                containerWidth={overlayRef.current?.clientWidth || 800}
-                containerHeight={overlayRef.current?.clientHeight || 600}
-                onPositionChange={(id, position) => onAnnotationPositionChange?.(id, position)}
-                onSizeChange={(id, size) => onAnnotationSizeChange?.(id, size)}
-                onClick={handleAnnotationClick}
-                zIndex={annotation.zIndex}
-                isSelectedBoost={annotation.id === selectedAnnotationId}
-              />
-            ));
-          })()}
-        </div>
+              return sorted.map((annotation) => (
+                <AnnotationOverlay
+                  key={annotation.id}
+                  annotation={annotation}
+                  isSelected={annotation.id === selectedAnnotationId}
+                  containerWidth={overlayRef.current?.clientWidth || 800}
+                  containerHeight={overlayRef.current?.clientHeight || 600}
+                  onPositionChange={(id, position) => onAnnotationPositionChange?.(id, position)}
+                  onSizeChange={(id, size) => onAnnotationSizeChange?.(id, size)}
+                  onClick={handleAnnotationClick}
+                  zIndex={annotation.zIndex}
+                  isSelectedBoost={annotation.id === selectedAnnotationId}
+                />
+              ));
+            })()}
+          </div>
+          
+          {/* Quick add interaction overlay - only show when no annotation is selected */}
+          {!selectedAnnotationId && (onQuickAddZoom || onQuickAddBlur) && (
+            <VideoInteractionOverlay
+              containerWidth={overlayRef.current?.clientWidth || 800}
+              containerHeight={overlayRef.current?.clientHeight || 600}
+              currentTimeMs={Math.round(currentTime * 1000)}
+              onAddZoom={onQuickAddZoom}
+              onAddBlur={onQuickAddBlur}
+            />
+          )}
+        </>
       )}
       <video
         ref={videoRef}

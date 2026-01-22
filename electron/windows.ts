@@ -22,7 +22,7 @@ export function createHudOverlayWindow(): BrowserWindow {
   const { workArea } = primaryDisplay;
 
 
-  const windowWidth = 500;
+  const windowWidth = 1000;
   const windowHeight = 100;
 
   const x = Math.floor(workArea.x + (workArea.width - windowWidth) / 2);
@@ -31,8 +31,8 @@ export function createHudOverlayWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: windowWidth,
     height: windowHeight,
-    minWidth: 500,
-    maxWidth: 500,
+    minWidth: 1000,
+    maxWidth: 1000,
     minHeight: 100,
     maxHeight: 100,
     x: x,
@@ -50,6 +50,10 @@ export function createHudOverlayWindow(): BrowserWindow {
       backgroundThrottling: false,
     },
   })
+
+  // CRITICAL: Prevent this window from being captured in screen recordings
+  // This makes it invisible to screen capture while still being visible to the user
+  win.setContentProtection(true);
 
 
   win.webContents.on('did-finish-load', () => {
@@ -108,6 +112,8 @@ export function createEditorWindow(): BrowserWindow {
 
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
+    // Open DevTools for debugging
+    win?.webContents.openDevTools()
   })
 
   if (VITE_DEV_SERVER_URL) {

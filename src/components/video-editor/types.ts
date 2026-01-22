@@ -19,7 +19,7 @@ export interface TrimRegion {
   endMs: number;
 }
 
-export type AnnotationType = 'text' | 'image' | 'figure';
+export type AnnotationType = 'text' | 'image' | 'figure' | 'blur';
 
 export type ArrowDirection = 'up' | 'down' | 'left' | 'right' | 'up-right' | 'up-left' | 'down-right' | 'down-left';
 
@@ -50,6 +50,22 @@ export interface AnnotationTextStyle {
   textAlign: 'left' | 'center' | 'right';
 }
 
+export interface BlurStyle {
+  type: 'blur' | 'pixelate' | 'blackout';
+  intensity?: number; // 0-100
+  label?: string; // What was detected
+}
+
+// Type guard to check if style is BlurStyle
+export function isBlurStyle(style: AnnotationTextStyle | BlurStyle): style is BlurStyle {
+  return 'type' in style && (style.type === 'blur' || style.type === 'pixelate' || style.type === 'blackout');
+}
+
+// Type guard to check if style is AnnotationTextStyle
+export function isTextStyle(style: AnnotationTextStyle | BlurStyle): style is AnnotationTextStyle {
+  return !isBlurStyle(style);
+}
+
 export interface AnnotationRegion {
   id: string;
   startMs: number;
@@ -60,7 +76,7 @@ export interface AnnotationRegion {
   imageContent?: string; // Separate storage for image data URL
   position: AnnotationPosition;
   size: AnnotationSize;
-  style: AnnotationTextStyle;
+  style: AnnotationTextStyle | BlurStyle; // Can be text style or blur style
   zIndex: number;
   figureData?: FigureData;
 }
@@ -92,7 +108,11 @@ export const DEFAULT_FIGURE_DATA: FigureData = {
   strokeWidth: 4,
 };
 
-
+export const DEFAULT_BLUR_STYLE: BlurStyle = {
+  type: 'blur',
+  intensity: 30,
+  label: 'Sensitive Info',
+};
 
 export interface CropRegion {
   x: number; 

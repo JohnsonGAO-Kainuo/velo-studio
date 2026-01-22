@@ -69,4 +69,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showMainWindow: () => {
     return ipcRenderer.invoke('show-main-window')
   },
+  minimizeMainWindow: () => {
+    return ipcRenderer.invoke('minimize-main-window')
+  },
+  restoreMainWindow: () => {
+    return ipcRenderer.invoke('restore-main-window')
+  },
+  // Cursor tracking for auto-zoom
+  startCursorTracking: () => {
+    return ipcRenderer.invoke('start-cursor-tracking')
+  },
+  stopCursorTracking: () => {
+    return ipcRenderer.invoke('stop-cursor-tracking')
+  },
+  recordCursorClick: (button: number) => {
+    return ipcRenderer.invoke('record-cursor-click', button)
+  },
+  saveCursorData: (videoPath: string, cursorData: string) => {
+    return ipcRenderer.invoke('save-cursor-data', videoPath, cursorData)
+  },
+  loadCursorData: (videoPath: string) => {
+    return ipcRenderer.invoke('load-cursor-data', videoPath)
+  },
 })

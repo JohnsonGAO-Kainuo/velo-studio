@@ -9,6 +9,19 @@ interface ProcessedDesktopSource {
   appIcon: string | null;
 }
 
+interface CursorTrackingResult {
+  success: boolean;
+  screenWidth?: number;
+  screenHeight?: number;
+}
+
+interface CursorTrackingData {
+  events: Array<{x: number, y: number, timestamp: number, type: string, button?: number}>;
+  screenWidth: number;
+  screenHeight: number;
+  duration: number;
+}
+
 interface Window {
   electronAPI: {
     getSources: (opts: Electron.SourcesOptions) => Promise<ProcessedDesktopSource[]>
@@ -42,5 +55,15 @@ interface Window {
     setCurrentVideoPath: (path: string) => Promise<{ success: boolean }>
     getCurrentVideoPath: () => Promise<{ success: boolean; path?: string }>
     clearCurrentVideoPath: () => Promise<{ success: boolean }>
+    hideMainWindow: () => Promise<void>
+    showMainWindow: () => Promise<void>
+    minimizeMainWindow: () => Promise<void>
+    restoreMainWindow: () => Promise<void>
+    // Cursor tracking for auto-zoom
+    startCursorTracking: () => Promise<CursorTrackingResult>
+    stopCursorTracking: () => Promise<CursorTrackingData>
+    recordCursorClick: (button: number) => Promise<{ success: boolean }>
+    saveCursorData: (videoPath: string, cursorData: string) => Promise<{ success: boolean; path?: string; error?: string }>
+    loadCursorData: (videoPath: string) => Promise<{ success: boolean; data?: string; error?: string }>
   }
 }

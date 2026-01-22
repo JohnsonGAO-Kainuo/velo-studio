@@ -1,5 +1,5 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage } from 'electron'
-import { fileURLToPath } from 'node:url'
+import { app, BrowserWindow, Tray, Menu, nativeImage, protocol, net } from 'electron'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { createHudOverlayWindow, createEditorWindow, createSourceSelectorWindow } from './windows'
@@ -7,6 +7,24 @@ import { registerIpcHandlers } from './ipc/handlers'
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Register custom protocol for loading local assets
+// Must be done before app is ready
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'velo-asset',
+    privileges: {
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true,
+      corsEnabled: true,
+      stream: true
+    }
+  }
+])
+
+// Set app name for development mode (production uses electron-builder config)
+app.setName('Velo Studio')
 
 export const RECORDINGS_DIR = path.join(app.getPath('userData'), 'recordings')
 
@@ -69,7 +87,7 @@ function getTrayIcon(filename: string) {
 function updateTrayMenu(recording: boolean = false) {
   if (!tray) return;
   const trayIcon = recording ? recordingTrayIcon : defaultTrayIcon;
-  const trayToolTip = recording ? `Recording: ${selectedSourceName}` : "OpenScreen";
+  const trayToolTip = recording ? `Recording: ${selectedSourceName}` : "Velo Studio";
   const menuTemplate = recording
     ? [
         {
@@ -138,6 +156,39 @@ app.on('activate', () => {
 
 // Register all IPC handlers when app is ready
 app.whenReady().then(async () => {
+    // Register custom protocol handler for velo-asset://
+    // This allows loading local files securely in the renderer
+    protocol.handle('velo-asset', (request) => {
+      // velo-asset://wallpapers/wallpaper1.jpg -> /path/to/assets/wallpapers/wallpaper1.jpg
+      const url = new URL(request.url)
+      const relativePath = decodeURIComponent(url.pathname).replace(/^\//, '')
+      
+      let basePath: string
+      if (app.isPackaged) {
+        basePath = path.join(process.resourcesPath, 'assets')
+      } else {
+        basePath = path.join(process.env.APP_ROOT || '', 'public')
+      }
+      
+      const filePath = path.join(basePath, relativePath)
+      console.log('[velo-asset protocol] Resolving:', request.url, '->', filePath)
+      
+      return net.fetch(pathToFileURL(filePath).href)
+    })
+
+    // Set dock icon for development mode on macOS
+    if (process.platform === 'darwin' && !app.isPackaged) {
+      const iconPath = path.join(process.env.APP_ROOT || '', 'icons', 'icons', 'mac', 'icon.icns')
+      try {
+        const dockIcon = nativeImage.createFromPath(iconPath)
+        if (!dockIcon.isEmpty() && app.dock) {
+          app.dock.setIcon(dockIcon)
+        }
+      } catch (e) {
+        console.warn('Failed to set dock icon:', e)
+      }
+    }
+
     // Listen for HUD overlay quit event (macOS only)
     const { ipcMain } = await import('electron');
     ipcMain.on('hud-overlay-close', () => {

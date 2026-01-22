@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTimelineContext } from "dnd-timeline";
 import { Button } from "@/components/ui/button";
-import { Plus, Scissors, ZoomIn, MessageSquare, ChevronDown, Check } from "lucide-react";
+import { PushButton } from "@/components/ui/push-button";
+import { Plus, Scissors, ZoomIn, MessageSquare, ChevronDown, Check, Wand2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import TimelineWrapper from "./TimelineWrapper";
@@ -51,6 +52,13 @@ interface TimelineEditorProps {
   onSelectAnnotation?: (id: string | null) => void;
   aspectRatio: AspectRatio;
   onAspectRatioChange: (aspectRatio: AspectRatio) => void;
+  // Auto-zoom props
+  hasCursorData?: boolean;
+  isGeneratingAutoZoom?: boolean;
+  onAutoZoom?: () => void;
+  // Privacy scan props
+  isScanningPrivacy?: boolean;
+  onPrivacyScan?: () => void;
 }
 
 interface TimelineScaleConfig {
@@ -434,7 +442,7 @@ function Timeline({
         timelineRef={localTimelineRef}
       />
       
-      <Row id={ZOOM_ROW_ID}>
+      <Row id={ZOOM_ROW_ID} variant="zoom">
         {zoomItems.map((item) => (
           <Item
             id={item.id}
@@ -451,7 +459,7 @@ function Timeline({
         ))}
       </Row>
 
-      <Row id={TRIM_ROW_ID}>
+      <Row id={TRIM_ROW_ID} variant="trim">
         {trimItems.map((item) => (
           <Item
             id={item.id}
@@ -467,7 +475,7 @@ function Timeline({
         ))}
       </Row>
 
-      <Row id={ANNOTATION_ROW_ID}>
+      <Row id={ANNOTATION_ROW_ID} variant="annotation">
         {annotationItems.map((item) => (
           <Item
             id={item.id}
@@ -510,6 +518,11 @@ export default function TimelineEditor({
   onSelectAnnotation,
   aspectRatio,
   onAspectRatioChange,
+  hasCursorData = false,
+  isGeneratingAutoZoom = false,
+  onAutoZoom,
+  isScanningPrivacy = false,
+  onPrivacyScan,
 }: TimelineEditorProps) {
   const totalMs = useMemo(() => Math.max(0, Math.round(videoDuration * 1000)), [videoDuration]);
   const currentTimeMs = useMemo(() => Math.round(currentTime * 1000), [currentTime]);
@@ -854,16 +867,48 @@ export default function TimelineEditor({
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-neutral-200 bg-white">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <Button
             onClick={handleAddZoom}
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-neutral-500 hover:text-[#34B27B] hover:bg-[#34B27B]/10 transition-all"
+            className="h-8 w-8 text-neutral-500 hover:text-[#34B27B] hover:bg-[#34B27B]/10 transition-all"
             title="Add Zoom (Z)"
           >
             <ZoomIn className="w-4 h-4" />
           </Button>
+          {onAutoZoom && (
+            <PushButton
+              onClick={onAutoZoom}
+              disabled={isGeneratingAutoZoom || !hasCursorData}
+              variant="accent"
+              size="sm"
+              className={cn(
+                "gap-1.5",
+                (!hasCursorData || isGeneratingAutoZoom) && "opacity-50 cursor-not-allowed"
+              )}
+              title={hasCursorData ? "Auto-generate zoom regions based on cursor movement" : "No cursor data available - record a new video to use this feature"}
+            >
+              <Wand2 className={cn("w-3.5 h-3.5", isGeneratingAutoZoom && "animate-spin")} />
+              <span className="hidden sm:inline">Auto Zoom</span>
+            </PushButton>
+          )}
+          {onPrivacyScan && (
+            <PushButton
+              onClick={onPrivacyScan}
+              disabled={isScanningPrivacy}
+              variant="default"
+              size="sm"
+              className={cn(
+                "gap-1.5",
+                isScanningPrivacy && "opacity-50"
+              )}
+              title="Scan video for sensitive information (API keys, passwords, etc.) and auto-blur"
+            >
+              <ShieldCheck className={cn("w-3.5 h-3.5", isScanningPrivacy && "animate-pulse")} />
+              <span className="hidden sm:inline">Privacy</span>
+            </PushButton>
+          )}
           <Button
             onClick={handleAddTrim}
             variant="ghost"

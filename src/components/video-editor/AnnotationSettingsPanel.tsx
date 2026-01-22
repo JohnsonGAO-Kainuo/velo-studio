@@ -1,10 +1,10 @@
 import {useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Trash2, Type, Image as ImageIcon, Upload, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, ChevronDown, Info } from "lucide-react";
+import { Trash2, Type, Image as ImageIcon, Upload, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, ChevronDown, Info, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import Block from '@uiw/react-color-block';
-import type { AnnotationRegion, AnnotationType, ArrowDirection, FigureData } from "./types";
+import type { AnnotationRegion, AnnotationType, ArrowDirection, FigureData, AnnotationTextStyle, BlurStyle } from "./types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -100,6 +100,79 @@ export function AnnotationSettingsPanel({
     event.target.value = '';
   };
 
+  // If it's a blur annotation, show a simpler settings panel
+  if (annotation.type === 'blur') {
+    const blurStyle = annotation.style as BlurStyle;
+    return (
+      <div className="flex-[2] min-w-0 bg-[#fafafa] border border-neutral-200 rounded-2xl p-4 flex flex-col shadow-xl h-full overflow-y-auto custom-scrollbar">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-medium text-neutral-800">Privacy Blur Settings</span>
+            <span className="text-[10px] uppercase tracking-wider font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+              Privacy
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-neutral-200">
+              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-neutral-800">Detected Sensitive Info</p>
+                <p className="text-xs text-neutral-500">{blurStyle.label || 'Unknown pattern'}</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-neutral-800 mb-2 block">Blur Type</label>
+              <Select 
+                value={blurStyle.type} 
+                onValueChange={(value) => onStyleChange({ type: value as 'blur' | 'pixelate' | 'blackout' })}
+              >
+                <SelectTrigger className="w-full bg-white border-neutral-200 text-neutral-800 h-9 text-xs">
+                  <SelectValue placeholder="Select blur type" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-neutral-200 text-neutral-800">
+                  <SelectItem value="blur">Blur</SelectItem>
+                  <SelectItem value="pixelate">Pixelate</SelectItem>
+                  <SelectItem value="blackout">Blackout</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-neutral-800 mb-2 block">Intensity: {blurStyle.intensity || 20}</label>
+              <Slider
+                value={[blurStyle.intensity || 20]}
+                onValueChange={([value]) => onStyleChange({ intensity: value })}
+                min={5}
+                max={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Delete Button */}
+        <div className="mt-auto pt-4 border-t border-neutral-200">
+          <Button
+            variant="outline"
+            onClick={onDelete}
+            className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Blur Region
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Get text style safely for non-blur annotations
+  const textStyle = annotation.style as AnnotationTextStyle;
+
   return (
     <div className="flex-[2] min-w-0 bg-[#fafafa] border border-neutral-200 rounded-2xl p-4 flex flex-col shadow-xl h-full overflow-y-auto custom-scrollbar">
       <div className="mb-6">
@@ -112,20 +185,24 @@ export function AnnotationSettingsPanel({
         
         {/* Type Selector */}
         <Tabs value={annotation.type} onValueChange={(value) => onTypeChange(value as AnnotationType)} className="mb-6">
-          <TabsList className="mb-4 bg-white border border-neutral-200 p-1 w-full grid grid-cols-3 h-auto rounded-xl">
-            <TabsTrigger value="text" className="data-[state=active]:bg-[#34B27B] data-[state=active]:text-white text-neutral-500 py-2 rounded-lg transition-all gap-2">
+          <TabsList className="mb-4 bg-white border border-neutral-200 p-1 w-full grid grid-cols-4 h-auto rounded-xl">
+            <TabsTrigger value="text" className="data-[state=active]:bg-[#34B27B] data-[state=active]:text-white text-neutral-500 py-2 rounded-lg transition-all gap-1 text-xs">
               <Type className="w-4 h-4" />
               Text
             </TabsTrigger>
-            <TabsTrigger value="image" className="data-[state=active]:bg-[#34B27B] data-[state=active]:text-white text-neutral-500 py-2 rounded-lg transition-all gap-2">
+            <TabsTrigger value="image" className="data-[state=active]:bg-[#34B27B] data-[state=active]:text-white text-neutral-500 py-2 rounded-lg transition-all gap-1 text-xs">
               <ImageIcon className="w-4 h-4" />
               Image
             </TabsTrigger>
-            <TabsTrigger value="figure" className="data-[state=active]:bg-[#34B27B] data-[state=active]:text-white text-neutral-500 py-2 rounded-lg transition-all gap-2">
+            <TabsTrigger value="figure" className="data-[state=active]:bg-[#34B27B] data-[state=active]:text-white text-neutral-500 py-2 rounded-lg transition-all gap-1 text-xs">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 12h16m0 0l-6-6m6 6l-6 6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Arrow
+            </TabsTrigger>
+            <TabsTrigger value="blur" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-neutral-500 py-2 rounded-lg transition-all gap-1 text-xs">
+              <ShieldCheck className="w-4 h-4" />
+              Blur
             </TabsTrigger>
           </TabsList>
 
@@ -149,7 +226,7 @@ export function AnnotationSettingsPanel({
                 <div>
                   <label className="text-xs font-medium text-neutral-800 mb-2 block">Font Style</label>
                   <Select 
-                    value={annotation.style.fontFamily} 
+                    value={textStyle.fontFamily} 
                     onValueChange={(value) => onStyleChange({ fontFamily: value })}
                   >
                     <SelectTrigger className="w-full bg-white border-neutral-200 text-neutral-800 h-9 text-xs">
@@ -167,7 +244,7 @@ export function AnnotationSettingsPanel({
                 <div>
                   <label className="text-xs font-medium text-neutral-800 mb-2 block">Size</label>
                   <Select 
-                    value={annotation.style.fontSize.toString()} 
+                    value={textStyle.fontSize.toString()} 
                     onValueChange={(value) => onStyleChange({ fontSize: parseInt(value) })}
                   >
                     <SelectTrigger className="w-full bg-white border-neutral-200 text-neutral-800 h-9 text-xs">
@@ -190,8 +267,8 @@ export function AnnotationSettingsPanel({
                   <ToggleGroupItem 
                     value="bold" 
                     aria-label="Toggle bold"
-                    data-state={annotation.style.fontWeight === 'bold' ? 'on' : 'off'}
-                    onClick={() => onStyleChange({ fontWeight: annotation.style.fontWeight === 'bold' ? 'normal' : 'bold' })}
+                    data-state={textStyle.fontWeight === 'bold' ? 'on' : 'off'}
+                    onClick={() => onStyleChange({ fontWeight: textStyle.fontWeight === 'bold' ? 'normal' : 'bold' })}
                     className="h-8 w-8 data-[state=on]:bg-[#34B27B] data-[state=on]:text-white text-neutral-500 hover:bg-white hover:text-neutral-800"
                   >
                     <Bold className="h-4 w-4" />
@@ -199,8 +276,8 @@ export function AnnotationSettingsPanel({
                   <ToggleGroupItem 
                     value="italic" 
                     aria-label="Toggle italic"
-                    data-state={annotation.style.fontStyle === 'italic' ? 'on' : 'off'}
-                    onClick={() => onStyleChange({ fontStyle: annotation.style.fontStyle === 'italic' ? 'normal' : 'italic' })}
+                    data-state={textStyle.fontStyle === 'italic' ? 'on' : 'off'}
+                    onClick={() => onStyleChange({ fontStyle: textStyle.fontStyle === 'italic' ? 'normal' : 'italic' })}
                     className="h-8 w-8 data-[state=on]:bg-[#34B27B] data-[state=on]:text-white text-neutral-500 hover:bg-white hover:text-neutral-800"
                   >
                     <Italic className="h-4 w-4" />
@@ -208,15 +285,15 @@ export function AnnotationSettingsPanel({
                   <ToggleGroupItem 
                     value="underline" 
                     aria-label="Toggle underline"
-                    data-state={annotation.style.textDecoration === 'underline' ? 'on' : 'off'}
-                    onClick={() => onStyleChange({ textDecoration: annotation.style.textDecoration === 'underline' ? 'none' : 'underline' })}
+                    data-state={textStyle.textDecoration === 'underline' ? 'on' : 'off'}
+                    onClick={() => onStyleChange({ textDecoration: textStyle.textDecoration === 'underline' ? 'none' : 'underline' })}
                     className="h-8 w-8 data-[state=on]:bg-[#34B27B] data-[state=on]:text-white text-neutral-500 hover:bg-white hover:text-neutral-800"
                   >
                     <Underline className="h-4 w-4" />
                   </ToggleGroupItem>
                 </ToggleGroup>
 
-                <ToggleGroup type="single" value={annotation.style.textAlign} className="justify-start bg-white p-1 rounded-lg border border-neutral-200">
+                <ToggleGroup type="single" value={textStyle.textAlign} className="justify-start bg-white p-1 rounded-lg border border-neutral-200">
                   <ToggleGroupItem 
                     value="left" 
                     aria-label="Align left"
@@ -256,17 +333,17 @@ export function AnnotationSettingsPanel({
                       >
                         <div 
                           className="w-4 h-4 rounded-full border border-neutral-300" 
-                          style={{ backgroundColor: annotation.style.color }}
+                          style={{ backgroundColor: textStyle.color }}
                         />
                         <span className="text-xs text-neutral-700 truncate flex-1 text-left">
-                          {annotation.style.color}
+                          {textStyle.color}
                         </span>
                         <ChevronDown className="h-3 w-3 opacity-50" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[260px] p-3 bg-white border border-neutral-200 rounded-xl shadow-xl">
                       <Block
-                        color={annotation.style.color}
+                        color={textStyle.color}
                         colors={colorPalette}
                         onChange={(color) => {
                           onStyleChange({ color: color.hex });
@@ -292,18 +369,18 @@ export function AnnotationSettingsPanel({
                           <div className="absolute inset-0 checkerboard-bg opacity-50" />
                           <div 
                             className="absolute inset-0"
-                            style={{ backgroundColor: annotation.style.backgroundColor }}
+                            style={{ backgroundColor: textStyle.backgroundColor }}
                           />
                         </div>
                         <span className="text-xs text-neutral-700 truncate flex-1 text-left">
-                          {annotation.style.backgroundColor === 'transparent' ? 'None' : 'Color'}
+                          {textStyle.backgroundColor === 'transparent' ? 'None' : 'Color'}
                         </span>
                         <ChevronDown className="h-3 w-3 opacity-50" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[260px] p-3 bg-white border border-neutral-200 rounded-xl shadow-xl">
                       <Block
-                        color={annotation.style.backgroundColor === 'transparent' ? '#000000' : annotation.style.backgroundColor}
+                        color={textStyle.backgroundColor === 'transparent' ? '#000000' : textStyle.backgroundColor}
                         colors={colorPalette}
                         onChange={(color) => {
                           onStyleChange({ backgroundColor: color.hex });
@@ -455,6 +532,67 @@ export function AnnotationSettingsPanel({
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+          </TabsContent>
+
+          {/* Blur Settings */}
+          <TabsContent value="blur" className="mt-0 space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-neutral-800">Privacy Blur</p>
+                <p className="text-xs text-neutral-500">Hide sensitive information</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-neutral-800 mb-2 block">Blur Type</label>
+              <Select 
+                value={(annotation.style as BlurStyle).type || 'blur'} 
+                onValueChange={(value) => onStyleChange({ type: value as 'blur' | 'pixelate' | 'blackout' })}
+              >
+                <SelectTrigger className="w-full bg-white border-neutral-200 text-neutral-800 h-9 text-xs">
+                  <SelectValue placeholder="Select blur type" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-neutral-200 text-neutral-800">
+                  <SelectItem value="blur">Gaussian Blur</SelectItem>
+                  <SelectItem value="pixelate">Pixelate</SelectItem>
+                  <SelectItem value="blackout">Blackout</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-neutral-800 mb-2 block">
+                Intensity: {(annotation.style as BlurStyle).intensity || 30}%
+              </label>
+              <Slider
+                value={[(annotation.style as BlurStyle).intensity || 30]}
+                onValueChange={([value]) => onStyleChange({ intensity: value })}
+                min={10}
+                max={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-neutral-800 mb-2 block">Label (optional)</label>
+              <input
+                type="text"
+                value={(annotation.style as BlurStyle).label || ''}
+                onChange={(e) => onStyleChange({ label: e.target.value })}
+                placeholder="e.g., API Key, Password..."
+                className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-neutral-800 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="p-3 bg-neutral-100 rounded-lg">
+              <p className="text-xs text-neutral-600">
+                <strong>Tip:</strong> Drag the corners to resize the blur region. The blur will be applied when exporting.
+              </p>
             </div>
           </TabsContent>
         </Tabs>

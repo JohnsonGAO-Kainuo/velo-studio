@@ -24,7 +24,7 @@ export function SourceSelector() {
       try {
         const rawSources = await window.electronAPI.getSources({
           types: ['screen', 'window'],
-          thumbnailSize: { width: 320, height: 180 },
+          thumbnailSize: { width: 640, height: 360 },
           fetchWindowIcons: true
         });
         setSources(
@@ -87,11 +87,17 @@ export function SourceSelector() {
                   >
                     <div className="p-1">
                       <div className="relative mb-1">
-                        <img
-                          src={source.thumbnail || ''}
-                          alt={source.name}
-                          className="w-full aspect-video object-cover rounded border border-neutral-200"
-                        />
+                        {source.thumbnail ? (
+                          <img
+                            src={source.thumbnail}
+                            alt={source.name}
+                            className="w-full aspect-video object-cover rounded border border-neutral-200"
+                          />
+                        ) : (
+                          <div className="w-full aspect-video bg-neutral-100 rounded border border-neutral-200 flex items-center justify-center">
+                            <span className="text-neutral-400 text-xs">No Preview</span>
+                          </div>
+                        )}
                         {selectedSource?.id === source.id && (
                           <div className="absolute -top-1 -right-1">
                             <div className="w-4 h-4 bg-[#34B27B] rounded-full flex items-center justify-center shadow-md">
@@ -117,11 +123,17 @@ export function SourceSelector() {
                   >
                     <div className="p-1">
                       <div className="relative mb-1">
-                        <img
-                          src={source.thumbnail || ''}
-                          alt={source.name}
-                          className="w-full aspect-video object-cover rounded border border-neutral-200"
-                        />
+                        {source.thumbnail ? (
+                          <img
+                            src={source.thumbnail}
+                            alt={source.name}
+                            className="w-full aspect-video object-cover rounded border border-neutral-200"
+                          />
+                        ) : (
+                          <div className="w-full aspect-video bg-neutral-100 rounded border border-neutral-200 flex items-center justify-center">
+                            <span className="text-neutral-400 text-xs">No Preview</span>
+                          </div>
+                        )}
                         {selectedSource?.id === source.id && (
                           <div className="absolute -top-1 -right-1">
                             <div className="w-4 h-4 bg-[#34B27B] rounded-full flex items-center justify-center shadow-md">

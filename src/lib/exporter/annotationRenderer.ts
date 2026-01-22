@@ -1,4 +1,4 @@
-import type { AnnotationRegion, ArrowDirection } from '@/components/video-editor/types';
+import type { AnnotationRegion, ArrowDirection, AnnotationTextStyle, BlurStyle } from '@/components/video-editor/types';
 
 // SVG path data for each arrow direction
 const ARROW_PATHS: Record<ArrowDirection, string[]> = {
@@ -135,7 +135,7 @@ function renderText(
   height: number,
   scaleFactor: number
 ) {
-  const style = annotation.style;
+  const style = annotation.style as AnnotationTextStyle;
   
   ctx.save();
   
@@ -264,6 +264,41 @@ async function renderImage(
   });
 }
 
+function renderBlur(
+  ctx: CanvasRenderingContext2D,
+  annotation: AnnotationRegion,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  _scaleFactor: number
+) {
+  const style = annotation.style as BlurStyle;
+  
+  ctx.save();
+  
+  // For blur effect in export, we use a solid color overlay
+  // since Canvas doesn't support backdrop-filter
+  if (style.type === 'blackout') {
+    ctx.fillStyle = 'black';
+  } else {
+    // For blur and pixelate, use a semi-transparent gray
+    ctx.fillStyle = 'rgba(128, 128, 128, 0.9)';
+  }
+  
+  const borderRadius = 4 * _scaleFactor;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, borderRadius);
+  ctx.fill();
+  
+  // Add a subtle border
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.lineWidth = 1 * _scaleFactor;
+  ctx.stroke();
+  
+  ctx.restore();
+}
+
 export async function renderAnnotations(
   ctx: CanvasRenderingContext2D,
   annotations: AnnotationRegion[],
@@ -309,6 +344,10 @@ export async function renderAnnotations(
             scaleFactor
           );
         }
+        break;
+      
+      case 'blur':
+        renderBlur(ctx, annotation, x, y, width, height, scaleFactor);
         break;
     }
   }

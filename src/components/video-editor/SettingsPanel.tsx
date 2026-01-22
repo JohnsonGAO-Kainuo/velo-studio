@@ -2,8 +2,9 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 import { getAssetPath } from "@/lib/assetPath";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
+import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PushButton } from "@/components/ui/push-button";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Block from '@uiw/react-color-block';
@@ -93,13 +94,13 @@ interface SettingsPanelProps {
 
 export default SettingsPanel;
 
-const ZOOM_DEPTH_OPTIONS: Array<{ depth: ZoomDepth; label: string }> = [
-  { depth: 1, label: "1.25×" },
-  { depth: 2, label: "1.5×" },
-  { depth: 3, label: "1.8×" },
-  { depth: 4, label: "2.2×" },
-  { depth: 5, label: "3.5×" },
-  { depth: 6, label: "5×" },
+const ZOOM_DEPTH_OPTIONS: Array<{ depth: 1 | 2 | 3 | 4 | 5 | 6; label: string; scale: string }> = [
+  { depth: 1, label: "1.25×", scale: "Small" },
+  { depth: 2, label: "1.5×", scale: "Medium" },
+  { depth: 3, label: "1.8×", scale: "Standard" },
+  { depth: 4, label: "2.2×", scale: "Large" },
+  { depth: 5, label: "3.5×", scale: "Extra" },
+  { depth: 6, label: "5×", scale: "Max" },
 ];
 
 export function SettingsPanel({ 
@@ -156,7 +157,9 @@ export function SettingsPanel({
         const resolved = await Promise.all(WALLPAPER_RELATIVE.map(p => getAssetPath(p)))
         if (mounted) setWallpaperPaths(resolved)
       } catch (err) {
-        if (mounted) setWallpaperPaths(WALLPAPER_RELATIVE.map(p => `/${p}`))
+        console.error('Failed to resolve wallpaper paths:', err)
+        // Keep empty array on error - don't use hardcoded paths
+        if (mounted) setWallpaperPaths([])
       }
     })()
     return () => { mounted = false }
@@ -227,9 +230,9 @@ export function SettingsPanel({
   const handleRemoveCustomImage = (imageUrl: string, event: React.MouseEvent) => {
     event.stopPropagation();
     setCustomImages(prev => prev.filter(img => img !== imageUrl));
-    // If the removed image was selected, clear selection
+    // If the removed image was selected, use first resolved path or clear
     if (selected === imageUrl) {
-      onWallpaperChange(wallpaperPaths[0] || WALLPAPER_RELATIVE[0]);
+      onWallpaperChange(wallpaperPaths[0] || '');
     }
   };
 
@@ -260,63 +263,62 @@ export function SettingsPanel({
           <div className="flex items-center gap-3">
             {zoomEnabled && selectedZoomDepth && (
               <span className="text-[10px] uppercase tracking-wider font-medium text-[#34B27B] bg-[#34B27B]/10 px-2 py-1 rounded-full">
-                {ZOOM_DEPTH_OPTIONS.find(o => o.depth === selectedZoomDepth)?.label} Active
+                {ZOOM_DEPTH_OPTIONS.find(o => o.depth === selectedZoomDepth)?.label || `${selectedZoomDepth}x`} Active
               </span>
             )}
             <KeyboardShortcutsHelp />
           </div>
         </div>
-        <div className="grid grid-cols-6 gap-2">
+        
+        <div className="grid grid-cols-6 gap-1.5">
           {ZOOM_DEPTH_OPTIONS.map((option) => {
             const isActive = selectedZoomDepth === option.depth;
             return (
-              <Button
+              <PushButton
                 key={option.depth}
-                type="button"
                 disabled={!zoomEnabled}
                 onClick={() => onZoomDepthChange?.(option.depth)}
+                variant={isActive ? "accent" : "ghost"}
+                size="sm"
                 className={cn(
-                  "h-auto w-full rounded-xl border px-1 py-3 text-center shadow-sm transition-all flex flex-col items-center justify-center gap-1.5",
-                  "duration-200 ease-out",
-                  zoomEnabled ? "opacity-100 cursor-pointer" : "opacity-40 cursor-not-allowed",
-                  isActive
-                    ? "border-[#34B27B] bg-[#34B27B] text-white shadow-[#34B27B]/20 scale-105 ring-2 ring-[#34B27B]/20"
-                    : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-800"
+                  zoomEnabled ? "opacity-100" : "opacity-40"
                 )}
               >
-                <span className={cn("text-sm font-semibold tracking-tight")}>{option.label}</span>
-              </Button>
+                {option.label}
+              </PushButton>
             );
           })}
         </div>
-        {!zoomEnabled && (
-          <p className="text-xs text-neutral-500 mt-3 text-center">Select a zoom region in the timeline to adjust depth.</p>
-        )}
         {zoomEnabled && (
-          <Button
+          <PushButton
             onClick={handleDeleteClick}
-            variant="destructive"
+            variant="danger"
             size="sm"
-            className="mt-4 w-full gap-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all"
+            className="mt-3 w-full gap-2"
           >
             <Trash2 className="w-4 h-4" />
             Delete Zoom Region
-          </Button>
+          </PushButton>
+        )}
+        {!zoomEnabled && (
+          <p className="text-xs text-neutral-500 text-center p-4 bg-neutral-50 rounded-lg border border-neutral-200 mt-3">
+            Select a zoom region in the timeline to adjust depth.
+          </p>
         )}
       </div>
 
       {/* Trim Delete Section */}
       <div className="mb-6">
         {trimEnabled && (
-          <Button
+          <PushButton
             onClick={handleTrimDeleteClick}
-            variant="destructive"
+            variant="danger"
             size="sm"
-            className="w-full gap-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all"
+            className="w-full gap-2"
           >
             <Trash2 className="w-4 h-4" />
             Delete Trim Region
-          </Button>
+          </PushButton>
         )}
       </div>
 
@@ -325,19 +327,23 @@ export function SettingsPanel({
           {/* Motion Blur Switch */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-neutral-200">
             <div className="text-xs font-medium text-neutral-700">Motion Blur</div>
-            <Switch
-              checked={motionBlurEnabled}
-              onCheckedChange={onMotionBlurChange}
-              className="data-[state=checked]:bg-[#34B27B]"
+            <ToggleSwitch
+              checked={motionBlurEnabled ?? true}
+              onCheckedChange={onMotionBlurChange ?? (() => {})}
+              size="sm"
+              activeColor="#34B27B"
+              inactiveColor="#d4d4d4"
             />
           </div>
           {/* Blur Background Switch */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-neutral-200">
             <div className="text-xs font-medium text-neutral-700">Blur</div>
-            <Switch
-              checked={showBlur}
-              onCheckedChange={onBlurChange}
-              className="data-[state=checked]:bg-[#34B27B]"
+            <ToggleSwitch
+              checked={showBlur ?? false}
+              onCheckedChange={onBlurChange ?? (() => {})}
+              size="sm"
+              activeColor="#34B27B"
+              inactiveColor="#d4d4d4"
             />
           </div>
         </div>
@@ -394,14 +400,15 @@ export function SettingsPanel({
       </div>
 
       <div className="mb-4">
-        <Button
+        <PushButton
           onClick={() => setShowCropDropdown(!showCropDropdown)}
-          variant="outline"
-          className="w-full gap-2 bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-900 h-9 transition-all"
+          variant="default"
+          size="md"
+          className="w-full gap-2"
         >
           <Crop className="w-4 h-4" />
           Crop Video
-        </Button>
+        </PushButton>
       </div>
       
       {showCropDropdown && cropRegion && onCropChange && (
@@ -432,13 +439,13 @@ export function SettingsPanel({
               aspectRatio={aspectRatio}
             />
             <div className="mt-6 flex justify-end">
-              <Button
+              <PushButton
                 onClick={() => setShowCropDropdown(false)}
+                variant="accent"
                 size="lg"
-                className="bg-[#34B27B] hover:bg-[#34B27B]/90 text-white"
               >
                 Done
-              </Button>
+              </PushButton>
             </div>
           </div>
         </>
@@ -461,14 +468,15 @@ export function SettingsPanel({
               accept=".jpg,.jpeg,image/jpeg"
               className="hidden"
             />
-            <Button
+            <PushButton
               onClick={() => fileInputRef.current?.click()}
-              variant="outline"
-              className="w-full gap-2 bg-white text-neutral-700 border-neutral-200 hover:bg-[#34B27B] hover:text-white hover:border-[#34B27B] transition-all"
+              variant="default"
+              size="sm"
+              className="w-full gap-2"
             >
               <Upload className="w-4 h-4" />
               Upload Custom Image
-            </Button>
+            </PushButton>
 
             <div className="grid grid-cols-6 gap-2.5">
               {/* Custom Images */}
@@ -499,8 +507,9 @@ export function SettingsPanel({
                 );
               })}
 
-              {/* Preset Wallpapers */}
-              {(wallpaperPaths.length > 0 ? wallpaperPaths : WALLPAPER_RELATIVE.map(p => `/${p}`)).map((path, idx) => {
+              {/* Preset Wallpapers - only render if paths are resolved */}
+              {wallpaperPaths.length > 0 && WALLPAPER_RELATIVE.map((relativePath, idx) => {
+                const path = wallpaperPaths[idx];
                 const isSelected = (() => {
                   if (!selected) return false;
                   if (selected === path) return true;
@@ -513,7 +522,7 @@ export function SettingsPanel({
                 })();
                 return (
                   <div
-                    key={path}
+                    key={`wallpaper-${idx}-${relativePath}`}
                     className={cn(
                       "aspect-square w-12 h-12 rounded-md border-2 overflow-hidden cursor-pointer transition-all duration-200 shadow-sm",
                       isSelected
@@ -574,30 +583,24 @@ export function SettingsPanel({
         <div className="mb-4">
           <div className="mb-2 text-xs font-medium text-neutral-500 uppercase tracking-wider">Export Format</div>
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <PushButton
               onClick={() => onExportFormatChange?.('mp4')}
-              className={cn(
-                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
-                exportFormat === 'mp4'
-                  ? "bg-[#34B27B]/10 border-[#34B27B]/50 text-neutral-800"
-                  : "bg-white border-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
-              )}
+              variant={exportFormat === 'mp4' ? "accent" : "ghost"}
+              size="md"
+              className="gap-2"
             >
-              <Film className="w-5 h-5" />
-              <span className="text-xs font-medium">MP4</span>
-            </button>
-            <button
+              <Film className="w-4 h-4" />
+              MP4
+            </PushButton>
+            <PushButton
               onClick={() => onExportFormatChange?.('gif')}
-              className={cn(
-                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
-                exportFormat === 'gif'
-                  ? "bg-[#34B27B]/10 border-[#34B27B]/50 text-neutral-800"
-                  : "bg-white border-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
-              )}
+              variant={exportFormat === 'gif' ? "accent" : "ghost"}
+              size="md"
+              className="gap-2"
             >
-              <Image className="w-5 h-5" />
-              <span className="text-xs font-medium">GIF</span>
-            </button>
+              <Image className="w-4 h-4" />
+              GIF
+            </PushButton>
           </div>
         </div>
 
@@ -605,40 +608,28 @@ export function SettingsPanel({
         {exportFormat === 'mp4' && (
           <>
             <div className="mb-2 text-xs font-medium text-neutral-500">Export Quality</div>
-            <div className="mb-4 bg-neutral-100 border border-neutral-200 p-1 w-full grid grid-cols-3 h-auto rounded-xl">
-              <button
+            <div className="mb-4 grid grid-cols-3 gap-2">
+              <PushButton
                 onClick={() => onExportQualityChange?.('medium')}
-                className={cn(
-                  "py-2 rounded-lg transition-all text-xs font-medium",
-                  exportQuality === 'medium'
-                    ? "bg-white text-neutral-800 shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-700"
-                )}
+                variant={exportQuality === 'medium' ? "accent" : "ghost"}
+                size="sm"
               >
                 Low
-              </button>
-              <button
+              </PushButton>
+              <PushButton
                 onClick={() => onExportQualityChange?.('good')}
-                className={cn(
-                  "py-2 rounded-lg transition-all text-xs font-medium",
-                  exportQuality === 'good'
-                    ? "bg-white text-neutral-800 shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-700"
-                )}
+                variant={exportQuality === 'good' ? "accent" : "ghost"}
+                size="sm"
               >
                 Medium
-              </button>
-              <button
+              </PushButton>
+              <PushButton
                 onClick={() => onExportQualityChange?.('source')}
-                className={cn(
-                  "py-2 rounded-lg transition-all text-xs font-medium",
-                  exportQuality === 'source'
-                    ? "bg-white text-neutral-800 shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-700"
-                )}
+                variant={exportQuality === 'source' ? "accent" : "ghost"}
+                size="sm"
               >
                 High
-              </button>
+              </PushButton>
             </div>
           </>
         )}
@@ -649,20 +640,16 @@ export function SettingsPanel({
             {/* Frame Rate */}
             <div>
               <div className="mb-1.5 text-xs font-medium text-neutral-500">Frame Rate</div>
-              <div className="bg-neutral-100 border border-neutral-200 p-1 w-full grid grid-cols-4 h-auto rounded-xl">
+              <div className="grid grid-cols-4 gap-1">
                 {GIF_FRAME_RATES.map((rate) => (
-                  <button
+                  <PushButton
                     key={rate.value}
                     onClick={() => onGifFrameRateChange?.(rate.value)}
-                    className={cn(
-                      "py-1.5 rounded-lg transition-all text-xs font-medium",
-                      gifFrameRate === rate.value
-                        ? "bg-white text-neutral-800 shadow-sm"
-                        : "text-neutral-500 hover:text-neutral-700"
-                    )}
+                    variant={gifFrameRate === rate.value ? "accent" : "ghost"}
+                    size="sm"
                   >
                     {rate.value}
-                  </button>
+                  </PushButton>
                 ))}
               </div>
             </div>
@@ -670,20 +657,16 @@ export function SettingsPanel({
             {/* Size Preset */}
             <div>
               <div className="mb-1.5 text-xs font-medium text-neutral-500">Output Size</div>
-              <div className="bg-neutral-100 border border-neutral-200 p-1 w-full grid grid-cols-3 h-auto rounded-xl">
+              <div className="grid grid-cols-3 gap-1">
                 {Object.entries(GIF_SIZE_PRESETS).map(([key, _preset]) => (
-                  <button
+                  <PushButton
                     key={key}
                     onClick={() => onGifSizePresetChange?.(key as GifSizePreset)}
-                    className={cn(
-                      "py-1.5 rounded-lg transition-all text-xs font-medium",
-                      gifSizePreset === key
-                        ? "bg-white text-neutral-800 shadow-sm"
-                        : "text-neutral-500 hover:text-neutral-700"
-                    )}
+                    variant={gifSizePreset === key ? "accent" : "ghost"}
+                    size="sm"
                   >
                     {key === 'original' ? 'Orig' : key.charAt(0).toUpperCase() + key.slice(1, 3)}
-                  </button>
+                  </PushButton>
                 ))}
               </div>
               <div className="mt-1 text-[10px] text-neutral-500">
@@ -694,45 +677,49 @@ export function SettingsPanel({
             {/* Loop Toggle */}
             <div className="flex items-center justify-between py-1">
               <span className="text-xs font-medium text-neutral-700">Loop Animation</span>
-              <Switch
+              <ToggleSwitch
                 checked={gifLoop}
-                onCheckedChange={onGifLoopChange}
-                className="data-[state=checked]:bg-[#34B27B]"
+                onCheckedChange={onGifLoopChange ?? (() => {})}
+                size="sm"
+                activeColor="#34B27B"
+                inactiveColor="#d4d4d4"
               />
             </div>
           </div>
         )}
         
-        <Button
-          type="button"
-          size="lg"
+        <PushButton
           onClick={onExport}
-          className="w-full py-6 text-lg font-semibold flex items-center justify-center gap-3 bg-[#34B27B] text-white rounded-xl shadow-lg shadow-[#34B27B]/20 hover:bg-[#34B27B]/90 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          variant="accent"
+          size="lg"
+          className="w-full gap-2"
         >
           <Download className="w-5 h-5" />
-          <span>Export {exportFormat === 'gif' ? 'GIF' : 'Video'}</span>
-        </Button>
-        <div className="flex gap-2 mt-4">
-          <button
-            type="button"
+          Export {exportFormat === 'gif' ? 'GIF' : 'Video'}
+        </PushButton>
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          <PushButton
             onClick={() => {
               window.electronAPI?.openExternalUrl('https://github.com/siddharthvaddem/openscreen/issues/new/choose');
             }}
-            className="flex-1 flex items-center justify-center gap-2 text-xs py-2 text-neutral-500 hover:text-neutral-700 transition-colors"
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
           >
-            <Bug className="w-3 h-3 text-[#34B27B]" />
-            <span>Report a Bug</span>
-          </button>
-          <button
-            type="button"
+            <Bug className="w-3.5 h-3.5 text-[#34B27B]" />
+            Report a Bug
+          </PushButton>
+          <PushButton
             onClick={() => {
               window.electronAPI?.openExternalUrl('https://github.com/siddharthvaddem/openscreen');
             }}
-            className="flex-1 flex items-center justify-center gap-2 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
           >
-            <Star className="w-3 h-3 text-amber-500" />
-            <span>Star on GitHub</span>
-          </button>
+            <Star className="w-3.5 h-3.5 text-amber-500" />
+            Star on GitHub
+          </PushButton>
         </div>
       </div>
     </div>
