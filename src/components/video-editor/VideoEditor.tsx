@@ -32,8 +32,6 @@ import { VideoExporter, GifExporter, type ExportProgress, type ExportQuality, ty
 import { type AspectRatio, getAspectRatioValue } from "@/utils/aspectRatioUtils";
 import { getAssetPath } from "@/lib/assetPath";
 import { generateAutoZoomRegions, deserializeCursorData, type CursorTrackingData } from "@/lib/cursorTracker";
-import { quickScanVideo } from "@/lib/videoOcrScanner";
-import { DEFAULT_CONFIG as DEFAULT_SENSITIVE_CONFIG } from "@/lib/sensitiveDetector";
 
 export default function VideoEditor() {
   const [videoPath, setVideoPath] = useState<string | null>(null);
@@ -68,7 +66,6 @@ export default function VideoEditor() {
   const [gifSizePreset, setGifSizePreset] = useState<GifSizePreset>('medium');
   const [cursorData, setCursorData] = useState<CursorTrackingData | null>(null);
   const [isGeneratingAutoZoom, setIsGeneratingAutoZoom] = useState(false);
-  const [isScanningPrivacy, setIsScanningPrivacy] = useState(false);
 
   const videoPlaybackRef = useRef<VideoPlaybackRef>(null);
   const nextZoomIdRef = useRef(1);
@@ -195,88 +192,7 @@ export default function VideoEditor() {
     }
   }, [cursorData]);
 
-  // Privacy scan function - detect and blur sensitive information
-  const handlePrivacyScan = useCallback(async () => {
-    const playback = videoPlaybackRef.current;
-    const video = playback?.video;
-    
-    if (!video) {
-      toast.error('Video not loaded');
-      return;
-    }
-
-    setIsScanningPrivacy(true);
-    const scanToastId = toast.loading('Starting privacy scan...');
-
-    try {
-      // Pause video during scan
-      const wasPlaying = isPlaying;
-      if (wasPlaying) {
-        playback.pause();
-      }
-
-      const result = await quickScanVideo(
-        video,
-        DEFAULT_SENSITIVE_CONFIG,
-        (progress) => {
-          toast.loading(progress.message, { id: scanToastId });
-        }
-      );
-
-      if (result.regions.length === 0) {
-        toast.info('No sensitive information detected', { id: scanToastId });
-        return;
-      }
-
-      // Convert detected regions to annotation blur regions
-      const newAnnotations: AnnotationRegion[] = result.regions.map((region, index) => ({
-        id: `privacy-blur-${nextAnnotationIdRef.current + index}`,
-        startMs: region.startMs,
-        endMs: region.endMs,
-        type: 'blur' as const,
-        content: region.patternName, // Store what was detected
-        // Convert bounds from video-relative to stage-relative
-        // The bounds are already normalized (0-1), so we can use them directly
-        position: {
-          x: region.bounds.x,
-          y: region.bounds.y,
-        },
-        size: {
-          // Add some padding around the detected text
-          width: Math.min(region.bounds.width * 1.2 + 0.02, 0.5),
-          height: Math.min(region.bounds.height * 1.5 + 0.02, 0.2),
-        },
-        style: {
-          type: 'blur' as const,
-          intensity: 50,
-          label: region.patternName,
-        },
-        zIndex: nextAnnotationZIndexRef.current + index,
-        figureData: DEFAULT_FIGURE_DATA,
-      }));
-
-      nextAnnotationIdRef.current += newAnnotations.length;
-      nextAnnotationZIndexRef.current += newAnnotations.length;
-
-      setAnnotationRegions(prev => [...prev, ...newAnnotations]);
-      
-      toast.success(`Found and blurred ${result.regions.length} sensitive items`, {
-        id: scanToastId,
-        description: `Scan completed in ${(result.duration / 1000).toFixed(1)}s`,
-      });
-
-      // Resume video if it was playing
-      if (wasPlaying) {
-        playback.play().catch(() => {});
-      }
-
-    } catch (err) {
-      console.error('[Privacy Scan] Error:', err);
-      toast.error('Failed to scan for sensitive information', { id: scanToastId });
-    } finally {
-      setIsScanningPrivacy(false);
-    }
-  }, [isPlaying]);
+  // Privacy scan function removed - keeping manual blur functionality only
 
   function togglePlayPause() {
     const playback = videoPlaybackRef.current;
@@ -1046,8 +962,6 @@ export default function VideoEditor() {
               hasCursorData={cursorData !== null && cursorData.events.length > 0}
               isGeneratingAutoZoom={isGeneratingAutoZoom}
               onAutoZoom={handleAutoZoom}
-              isScanningPrivacy={isScanningPrivacy}
-              onPrivacyScan={handlePrivacyScan}
             />
               </div>
             </Panel>

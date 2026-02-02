@@ -60,15 +60,15 @@ export interface AutoZoomConfig {
 }
 
 const DEFAULT_CONFIG: AutoZoomConfig = {
-  minZoomInterval: 1.0,      // 1 second between zooms (reduced for more responsiveness)
-  zoomDuration: 2.0,         // Each zoom lasts 2 seconds
+  minZoomInterval: 1.5,      // 1.5 seconds between zooms (更保守，避免过度缩放)
+  zoomDuration: 2.5,         // Each zoom lasts 2.5 seconds (稍长一些，更自然)
   clickZoomDepth: 3,         // Depth level 3 = 1.8x zoom for clicks
   focusZoomDepth: 2,         // Depth level 2 = 1.5x zoom for focus/hover
-  dwellTimeThreshold: 1000,  // 1 second dwell time (only for non-click areas)
-  slowdownRatio: 0.25,       // Speed drops to 25% of average = important area
-  minClickGap: 200,          // 200ms minimum between clicks (filter rapid double-clicks)
-  maxZoomsPerMinute: 25,     // Maximum 25 zooms per minute (more generous)
-  clusterThreshold: 0.06,    // 6% of screen = same cluster (tighter clustering)
+  dwellTimeThreshold: 1200,  // 1.2 seconds dwell time (提高阈值，只在真正停留时触发)
+  slowdownRatio: 0.2,        // Speed drops to 20% of average = important area (更严格的减速判断)
+  minClickGap: 300,          // 300ms minimum between clicks (过滤更多无意点击)
+  maxZoomsPerMinute: 20,     // Maximum 20 zooms per minute (降低频率，更精准)
+  clusterThreshold: 0.08,    // 8% of screen = same cluster (稍微放宽，合并相近区域)
 };
 
 /**

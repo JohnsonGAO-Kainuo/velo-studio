@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTimelineContext } from "dnd-timeline";
 import { Button } from "@/components/ui/button";
 import { PushButton } from "@/components/ui/push-button";
-import { Plus, Scissors, ZoomIn, MessageSquare, ChevronDown, Check, Wand2, ShieldCheck } from "lucide-react";
+import { Plus, Scissors, ZoomIn, MessageSquare, ChevronDown, Check, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import TimelineWrapper from "./TimelineWrapper";
@@ -56,9 +56,6 @@ interface TimelineEditorProps {
   hasCursorData?: boolean;
   isGeneratingAutoZoom?: boolean;
   onAutoZoom?: () => void;
-  // Privacy scan props
-  isScanningPrivacy?: boolean;
-  onPrivacyScan?: () => void;
 }
 
 interface TimelineScaleConfig {
@@ -521,8 +518,6 @@ export default function TimelineEditor({
   hasCursorData = false,
   isGeneratingAutoZoom = false,
   onAutoZoom,
-  isScanningPrivacy = false,
-  onPrivacyScan,
 }: TimelineEditorProps) {
   const totalMs = useMemo(() => Math.max(0, Math.round(videoDuration * 1000)), [videoDuration]);
   const currentTimeMs = useMemo(() => Math.round(currentTime * 1000), [currentTime]);
@@ -891,22 +886,6 @@ export default function TimelineEditor({
             >
               <Wand2 className={cn("w-3.5 h-3.5", isGeneratingAutoZoom && "animate-spin")} />
               <span className="hidden sm:inline">Auto Zoom</span>
-            </PushButton>
-          )}
-          {onPrivacyScan && (
-            <PushButton
-              onClick={onPrivacyScan}
-              disabled={isScanningPrivacy}
-              variant="default"
-              size="sm"
-              className={cn(
-                "gap-1.5",
-                isScanningPrivacy && "opacity-50"
-              )}
-              title="Scan video for sensitive information (API keys, passwords, etc.) and auto-blur"
-            >
-              <ShieldCheck className={cn("w-3.5 h-3.5", isScanningPrivacy && "animate-pulse")} />
-              <span className="hidden sm:inline">Privacy</span>
             </PushButton>
           )}
           <Button
