@@ -155,7 +155,7 @@ export default function VideoEditor() {
   // Auto-zoom generation function
   const handleAutoZoom = useCallback(async () => {
     if (!cursorData || cursorData.events.length === 0) {
-      toast.error('No cursor data available for this recording');
+      toast.error('Auto Zoom not available for this video');
       return;
     }
 
@@ -164,7 +164,7 @@ export default function VideoEditor() {
       const autoRegions = generateAutoZoomRegions(cursorData);
       
       if (autoRegions.length === 0) {
-        toast.info('No significant cursor activity detected');
+        toast.info('No zoom moments detected in this recording');
         return;
       }
 
@@ -183,10 +183,10 @@ export default function VideoEditor() {
       // Add to existing zoom regions
       setZoomRegions(prev => [...prev, ...newZoomRegions]);
       
-      toast.success(`Generated ${newZoomRegions.length} auto-zoom regions`);
+      toast.success(`✨ Auto Zoom applied!`);
     } catch (err) {
       console.error('[Auto-Zoom] Error generating regions:', err);
-      toast.error('Failed to generate auto-zoom regions');
+      toast.error('Auto Zoom failed. Please try again.');
     } finally {
       setIsGeneratingAutoZoom(false);
     }

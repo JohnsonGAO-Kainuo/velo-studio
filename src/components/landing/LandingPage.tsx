@@ -366,68 +366,80 @@ export function Pricing() {
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-20">
                     <h2 className="text-4xl font-bold text-[#202020] mb-4">Simple, transparent pricing</h2>
-                    <p className="text-[#5c5c5c] text-lg">Choose the plan that's right for you.</p>
+                    <p className="text-[#5c5c5c] text-lg">One plan. All features. No hidden costs.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                    {/* Free Plan */}
-                    <div className="p-8 rounded-3xl bg-[#f9f9f9] border border-black/5 flex flex-col card">
-                        <div className="mb-4">
-                            <span className="text-sm font-semibold text-[#5c5c5c] uppercase tracking-wider">Starter</span>
+                <div className="max-w-xl mx-auto">
+                    {/* Single Plan */}
+                    <div className="p-10 rounded-3xl bg-[#f9f9f9] border-2 border-[#202020] flex flex-col relative card">
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                            <span className="bg-[#202020] text-white text-xs font-bold px-4 py-1.5 rounded-full">✨ 14-Day Free Trial</span>
                         </div>
-                        <div className="mb-6">
-                            <span className="text-4xl font-bold text-[#202020]">$0</span>
-                            <span className="text-[#5c5c5c]">/forever</span>
+                        <div className="text-center mb-6 mt-4">
+                            <h3 className="text-2xl font-bold text-[#202020] mb-2">Velo Studio</h3>
+                            <p className="text-[#5c5c5c] text-sm">Professional screen recording made simple</p>
                         </div>
-                        <p className="text-[#5c5c5c] text-sm mb-8">Perfect for hobbyists and occasional users.</p>
-                        <button className="uiverse-download mb-8" data-tooltip="Price:-$0" onClick={() => window.open('#', '_blank')}>
+                        <div className="text-center mb-8">
+                            <div className="flex items-baseline justify-center gap-2 mb-2">
+                                <span className="text-5xl font-bold text-[#202020]">$8</span>
+                                <span className="text-[#5c5c5c] text-lg">/month</span>
+                            </div>
+                            <div className="text-sm text-[#5c5c5c]">
+                                or <span className="font-semibold text-[#202020]">$68/year</span> <span className="text-green-600 font-medium">(save 29%)</span>
+                            </div>
+                        </div>
+                        <button className="uiverse-download mb-10" data-tooltip="Start Free Trial" onClick={() => window.open('#', '_blank')}>
                           <div className="outline" />
                           <div className="state state--default">
                             <div className="icon"><Monitor className="w-5 h-5" /></div>
-                            <p>Download Free</p>
+                            <p>Start Free Trial</p>
                           </div>
                         </button>
-                        <ul className="space-y-4 flex-1">
-                            {["720p Recording", "5 Minute limit", "Local only"].map(item => (
-                                <li key={item} className="flex items-center gap-3 text-sm text-[#5c5c5c]">
-                                    <Check className="w-4 h-4 text-[#202020]" />
-                                    {item}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* Pro Plan */}
-                    <div className="p-8 rounded-3xl bg-[#f9f9f9] text-[#202020] flex flex-col relative card">
-                         <div className="absolute top-0 right-0 p-4">
-                         <span className="bg-white text-[#202020] text-xs font-bold px-3 py-1 rounded-full">Popular</span>
-                         </div>
-                        <div className="mb-4">
-                            <span className="text-sm font-semibold text-[#5c5c5c] uppercase tracking-wider">Pro</span>
+                        <div className="text-center mb-8">
+                            <p className="text-xs text-[#5c5c5c]">No credit card required • Cancel anytime</p>
                         </div>
-                        <div className="mb-6">
-                            <span className="text-4xl font-bold text-[#202020]">$12</span>
-                            <span className="text-[#5c5c5c]">/month</span>
+                        <div className="border-t border-black/5 pt-8">
+                            <h4 className="text-sm font-bold text-[#202020] mb-6 uppercase tracking-wider">Everything included:</h4>
+                            <ul className="space-y-4">
+                                {[
+                                    "4K Recording at 60fps",
+                                    "Unlimited recording time",
+                                    "AI-powered Auto Zoom",
+                                    "Advanced video editor",
+                                    "Export to MP4 & GIF",
+                                    "Motion blur effects",
+                                    "Custom backgrounds",
+                                    "Priority support"
+                                ].map(item => (
+                                    <li key={item} className="flex items-center gap-3 text-sm text-[#5c5c5c]">
+                                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#202020] flex items-center justify-center">
+                                            <Check className="w-3 h-3 text-white" />
+                                        </div>
+                                        <span className="font-medium">{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <p className="text-[#5c5c5c] text-sm mb-8">For professionals who need power and flexibility.</p>
-                        <button className="uiverse-download mb-8" data-tooltip="Price:-$12" onClick={() => window.open('#', '_blank')}>
-                          <div className="outline" />
-                          <div className="state state--default">
-                            <div className="icon"><Monitor className="w-5 h-5" /></div>
-                            <p>Buy Now</p>
-                          </div>
-                        </button>
-                        <ul className="space-y-4 flex-1">
-                            {["4K Recording", "Unlimited time", "Cloud Sync", "Priority Support", "Advanced Editor"].map(item => (
-                                <li key={item} className="flex items-center gap-3 text-sm text-[#5c5c5c]">
-                                    <Check className="w-4 h-4 text-[#202020]" />
-                                    {item}
-                                </li>
-                            ))}
-                        </ul>
                     </div>
-
-                    {/* (Removed Team Plan) */}
+                </div>
+                
+                {/* Trust badges */}
+                <div className="mt-20 text-center">
+                    <p className="text-sm text-[#5c5c5c] mb-6">Trusted by creators worldwide</p>
+                    <div className="flex items-center justify-center gap-8 text-xs text-[#5c5c5c]">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span>Local processing</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span>Privacy first</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span>No subscriptions lock-in</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

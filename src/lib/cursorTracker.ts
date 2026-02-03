@@ -60,15 +60,15 @@ export interface AutoZoomConfig {
 }
 
 const DEFAULT_CONFIG: AutoZoomConfig = {
-  minZoomInterval: 1.5,      // 1.5 seconds between zooms (更保守，避免过度缩放)
-  zoomDuration: 2.5,         // Each zoom lasts 2.5 seconds (稍长一些，更自然)
+  minZoomInterval: 1.0,      // 1.0 seconds between zooms (更频繁响应点击)
+  zoomDuration: 3.0,         // Each zoom lasts 3.0 seconds (让用户看得更清楚)
   clickZoomDepth: 3,         // Depth level 3 = 1.8x zoom for clicks
   focusZoomDepth: 2,         // Depth level 2 = 1.5x zoom for focus/hover
-  dwellTimeThreshold: 1200,  // 1.2 seconds dwell time (提高阈值，只在真正停留时触发)
-  slowdownRatio: 0.2,        // Speed drops to 20% of average = important area (更严格的减速判断)
-  minClickGap: 300,          // 300ms minimum between clicks (过滤更多无意点击)
-  maxZoomsPerMinute: 20,     // Maximum 20 zooms per minute (降低频率，更精准)
-  clusterThreshold: 0.08,    // 8% of screen = same cluster (稍微放宽，合并相近区域)
+  dwellTimeThreshold: 1500,  // 1.5 seconds dwell time (提高，减少误触)
+  slowdownRatio: 0.15,       // Speed drops to 15% = important area (更严格)
+  minClickGap: 250,          // 250ms minimum between clicks (识别更多有效点击)
+  maxZoomsPerMinute: 30,     // Maximum 30 zooms per minute (点击优先，可以更多)
+  clusterThreshold: 0.06,    // 6% of screen = same cluster (合并更紧密的点)
 };
 
 /**
@@ -209,7 +209,7 @@ export function generateAutoZoomRegions(
   // Collect all zoom candidates
   const candidates: ZoomCandidate[] = [];
   
-  // 1. Find click events - these are primary zoom targets (priority: 10)
+  // 1. Find click events - these are PRIMARY zoom targets (highest priority)
   const clickEvents = sortedEvents.filter(e => e.type === 'click');
   const filteredClicks = filterIntentionalClicks(clickEvents, cfg.minClickGap);
   
@@ -219,11 +219,11 @@ export function generateAutoZoomRegions(
       y: click.y,
       timestamp: click.timestamp,
       reason: 'click',
-      priority: 10,
+      priority: 100, // Significantly higher priority for clicks!
     });
   }
   
-  // 2. Find dwell/focus areas (cursor stays in one place) (priority: 6)
+  // 2. Find dwell/focus areas (cursor stays in one place) - LOWER priority
   const dwellAreas = findDwellAreas(sortedEvents, cfg.dwellTimeThreshold);
   for (const dwell of dwellAreas) {
     candidates.push({
@@ -231,11 +231,11 @@ export function generateAutoZoomRegions(
       y: dwell.y,
       timestamp: dwell.timestamp,
       reason: 'focus',
-      priority: 6,
+      priority: 30, // Medium priority
     });
   }
   
-  // 3. Find speed slowdown areas (cursor slows down significantly) (priority: 4)
+  // 3. Find speed slowdown areas - LOWEST priority
   const slowdowns = findSlowdownAreas(sortedEvents, cfg.slowdownRatio);
   for (const slowdown of slowdowns) {
     candidates.push({
@@ -243,7 +243,7 @@ export function generateAutoZoomRegions(
       y: slowdown.y,
       timestamp: slowdown.timestamp,
       reason: 'slowdown',
-      priority: 4,
+      priority: 10, // Low priority
     });
   }
   
@@ -264,7 +264,10 @@ export function generateAutoZoomRegions(
   for (const candidate of clusteredCandidates) {
     if (regions.length >= maxZooms) break;
     
-    const startTime = Math.max(candidate.timestamp / 1000 - 0.5, 0); // Start 0.5s before
+    // For clicks: start 0.8s before click, for others: start 0.3s before
+    // This captures the approach movement before the click
+    const preTime = candidate.reason === 'click' ? 0.8 : 0.3;
+    const startTime = Math.max(candidate.timestamp / 1000 - preTime, 0);
     const endTime = startTime + cfg.zoomDuration;
     
     // Check minimum interval

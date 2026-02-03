@@ -2,19 +2,15 @@ import { useState, useEffect } from "react";
 import styles from "./LaunchWindow.module.css";
 import { useScreenRecorder } from "../../hooks/useScreenRecorder";
 import { PushButton } from "../ui/push-button";
-import { ToggleSwitch } from "../ui/toggle-switch";
 import { BsRecordCircle } from "react-icons/bs";
 import { FaRegStopCircle } from "react-icons/fa";
 import { MdMonitor } from "react-icons/md";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { FaFolderMinus } from "react-icons/fa6";
 import { FiMinus, FiX } from "react-icons/fi";
-import { Wand2, ShieldCheck } from "lucide-react";
 
 export function LaunchWindow() {
-  const [autoZoomEnabled, setAutoZoomEnabled] = useState(true);
-  const [privacyModeEnabled, setPrivacyModeEnabled] = useState(true);
-  const { recording, toggleRecording } = useScreenRecorder({ autoZoomEnabled });
+  const { recording, toggleRecording } = useScreenRecorder();
   const [recordingStart, setRecordingStart] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
 
@@ -136,40 +132,8 @@ export function LaunchWindow() {
           </PushButton>
         </div>
 
-        <div className={`flex-1 flex items-center justify-center gap-4 ${styles.electronNoDrag}`}>
-          <div className="flex items-center gap-1.5">
-            <ToggleSwitch
-              checked={autoZoomEnabled}
-              onCheckedChange={setAutoZoomEnabled}
-              disabled={recording}
-              size="sm"
-              activeColor="#34B27B"
-              inactiveColor="#cfd1d4"
-            />
-            <div className="flex items-center gap-0.5">
-              <Wand2 size={13} className={autoZoomEnabled ? "text-[#34B27B]" : "text-[#b3b3b3]"} />
-              <span className={`text-[11px] font-semibold ${autoZoomEnabled ? "text-[#34B27B]" : "text-[#b3b3b3]"}`}>
-                Zoom
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <ToggleSwitch
-              checked={privacyModeEnabled}
-              onCheckedChange={setPrivacyModeEnabled}
-              disabled={recording}
-              size="sm"
-              activeColor="#3b82f6"
-              inactiveColor="#cfd1d4"
-            />
-            <div className="flex items-center gap-0.5">
-              <ShieldCheck size={13} className={privacyModeEnabled ? "text-[#3b82f6]" : "text-[#b3b3b3]"} />
-              <span className={`text-[11px] font-semibold ${privacyModeEnabled ? "text-[#3b82f6]" : "text-[#b3b3b3]"}`}>
-                Privacy
-              </span>
-            </div>
-          </div>
-        </div>
+        {/* Spacer for centered layout */}
+        <div className="flex-1" />
 
         <div className={`flex items-center gap-2 ${styles.electronNoDrag}`}>
           <PushButton

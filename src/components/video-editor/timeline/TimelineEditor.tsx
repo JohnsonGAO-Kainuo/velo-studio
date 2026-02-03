@@ -882,7 +882,7 @@ export default function TimelineEditor({
                 "gap-1.5",
                 (!hasCursorData || isGeneratingAutoZoom) && "opacity-50 cursor-not-allowed"
               )}
-              title={hasCursorData ? "Auto-generate zoom regions based on cursor movement" : "No cursor data available - record a new video to use this feature"}
+              title={hasCursorData ? "Automatically add zoom effects to important moments" : "Record a new video to use Auto Zoom"}
             >
               <Wand2 className={cn("w-3.5 h-3.5", isGeneratingAutoZoom && "animate-spin")} />
               <span className="hidden sm:inline">Auto Zoom</span>

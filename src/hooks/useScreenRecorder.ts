@@ -2,29 +2,18 @@ import { useState, useRef, useEffect } from "react";
 import { fixWebmDuration } from "@fix-webm-duration/fix";
 import { serializeCursorData, type CursorTrackingData } from "@/lib/cursorTracker";
 
-interface UseScreenRecorderOptions {
-  autoZoomEnabled?: boolean;
-}
-
 type UseScreenRecorderReturn = {
   recording: boolean;
   toggleRecording: () => void;
 };
 
-export function useScreenRecorder(options: UseScreenRecorderOptions = {}): UseScreenRecorderReturn {
-  const { autoZoomEnabled = true } = options;
+export function useScreenRecorder(): UseScreenRecorderReturn {
   const [recording, setRecording] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const chunks = useRef<Blob[]>([]);
   const startTime = useRef<number>(0);
   const cursorTrackingInfo = useRef<{ screenWidth: number; screenHeight: number } | null>(null);
-  const autoZoomEnabledRef = useRef(autoZoomEnabled);
-  
-  // Keep ref in sync with prop
-  useEffect(() => {
-    autoZoomEnabledRef.current = autoZoomEnabled;
-  }, [autoZoomEnabled]);
 
   // Target visually lossless 4K @ 60fps; fall back gracefully when hardware cannot keep up
   const TARGET_FRAME_RATE = 60;
@@ -100,22 +89,18 @@ export function useScreenRecorder(options: UseScreenRecorderOptions = {}): UseSc
         return;
       }
 
-      // Start cursor tracking for auto-zoom feature (only if enabled)
-      if (autoZoomEnabledRef.current) {
-        try {
-          const trackingResult = await window.electronAPI.startCursorTracking();
-          if (trackingResult.success && trackingResult.screenWidth && trackingResult.screenHeight) {
-            cursorTrackingInfo.current = {
-              screenWidth: trackingResult.screenWidth,
-              screenHeight: trackingResult.screenHeight
-            };
-            console.log('[Cursor Tracking] Started:', trackingResult);
-          }
-        } catch (err) {
-          console.warn('[Cursor Tracking] Failed to start:', err);
+      // Start cursor tracking for auto-zoom feature (always enabled, user can apply in editor)
+      try {
+        const trackingResult = await window.electronAPI.startCursorTracking();
+        if (trackingResult.success && trackingResult.screenWidth && trackingResult.screenHeight) {
+          cursorTrackingInfo.current = {
+            screenWidth: trackingResult.screenWidth,
+            screenHeight: trackingResult.screenHeight
+          };
+          console.log('[Cursor Tracking] Started:', trackingResult);
         }
-      } else {
-        console.log('[Cursor Tracking] Skipped (Auto Zoom disabled)');
+      } catch (err) {
+        console.warn('[Cursor Tracking] Failed to start:', err);
       }
 
       const mediaStream = await (navigator.mediaDevices as any).getUserMedia({
