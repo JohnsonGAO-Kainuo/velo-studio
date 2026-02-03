@@ -371,7 +371,7 @@ export function Pricing() {
 
                 <div className="max-w-xl mx-auto">
                     {/* Single Plan */}
-                    <div className="p-10 rounded-3xl bg-[#f9f9f9] border-2 border-[#202020] flex flex-col relative card">
+                    <div className="p-10 rounded-3xl bg-[#f9f9f9] border border-black/5 flex flex-col relative card">
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                             <span className="bg-[#202020] text-white text-xs font-bold px-4 py-1.5 rounded-full">✨ 14-Day Free Trial</span>
                         </div>
