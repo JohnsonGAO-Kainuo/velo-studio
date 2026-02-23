@@ -91,4 +91,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadCursorData: (videoPath: string) => {
     return ipcRenderer.invoke('load-cursor-data', videoPath)
   },
+  // Auth flow - signal main process that auth is complete
+  authReady: () => {
+    ipcRenderer.send('auth-ready')
+  },
 })

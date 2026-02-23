@@ -159,3 +159,37 @@ export function createSourceSelectorWindow(): BrowserWindow {
 
   return win
 }
+
+export function createAuthWindow(): BrowserWindow {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
+
+  const win = new BrowserWindow({
+    width: 460,
+    height: 600,
+    minWidth: 400,
+    minHeight: 500,
+    x: Math.round((width - 460) / 2),
+    y: Math.round((height - 600) / 2),
+    frame: false,
+    resizable: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 12, y: 12 },
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.mjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  })
+
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL + '?windowType=electron-auth')
+  } else {
+    win.loadFile(path.join(RENDERER_DIST, 'index.html'), {
+      query: { windowType: 'electron-auth' }
+    })
+  }
+
+  return win
+}

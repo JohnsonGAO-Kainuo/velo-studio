@@ -3,6 +3,7 @@ import { LaunchWindow } from "./components/launch/LaunchWindow";
 import { SourceSelector } from "./components/launch/SourceSelector";
 import VideoEditor from "./components/video-editor/VideoEditor";
 import { WebRoutes } from "./components/landing/WebRoutes";
+import { ElectronAuth } from "./components/electron/ElectronAuth";
 import { BrowserRouter } from 'react-router-dom';
 
 export default function App() {
@@ -27,6 +28,8 @@ export default function App() {
       return <SourceSelector />;
     case 'editor':
       return <VideoEditor />;
+    case 'electron-auth':
+      return <ElectronAuth />;
     default:
       // For web deployment (no windowType param), use Router
       return (

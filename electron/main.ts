@@ -2,7 +2,7 @@ import { app, BrowserWindow, Tray, Menu, nativeImage, protocol, net } from 'elec
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import { createHudOverlayWindow, createEditorWindow, createSourceSelectorWindow } from './windows'
+import { createHudOverlayWindow, createEditorWindow, createSourceSelectorWindow, createAuthWindow } from './windows'
 import { registerIpcHandlers } from './ipc/handlers'
 
 
@@ -59,6 +59,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 // Window references
 let mainWindow: BrowserWindow | null = null
+let authWindow: BrowserWindow | null = null
 let sourceSelectorWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let selectedSourceName = ''
@@ -194,6 +195,16 @@ app.whenReady().then(async () => {
     ipcMain.on('hud-overlay-close', () => {
       app.quit();
     });
+
+    // Listen for auth ready event - switch from auth window to HUD overlay
+    ipcMain.on('auth-ready', () => {
+      if (authWindow && !authWindow.isDestroyed()) {
+        authWindow.close();
+        authWindow = null;
+      }
+      createWindow();
+    });
+
     createTray()
     updateTrayMenu()
   // Ensure recordings directory exists
@@ -213,5 +224,9 @@ app.whenReady().then(async () => {
       }
     }
   )
-  createWindow()
+  // Start with auth window - will switch to HUD overlay after auth
+  authWindow = createAuthWindow()
+  authWindow.on('closed', () => {
+    authWindow = null;
+  })
 })

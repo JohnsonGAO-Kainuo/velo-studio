@@ -16,13 +16,14 @@ import {
   Plus,
   Minus
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import "./radio-inputs.css";
 import "./uiverse-buttons.css";
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 
 export function Logo({ className }: { className?: string }) {
@@ -42,14 +43,36 @@ export function Logo({ className }: { className?: string }) {
 export function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname.slice(1) || 'product';
+  const { user, profile, signOut, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    setUserMenuOpen(false);
+    await signOut();
+    navigate('/');
+  };
+
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -114,8 +137,46 @@ export function NavBar() {
             <span className="BG" />
           </button>
 
-          <Link to="/auth" className="text-sm font-medium text-[#5c5c5c] hover:text-[#202020]">Sign in</Link>
-          <Link to="/auth" className="text-sm font-semibold text-[#202020] hover:text-[#202020]">Sign up</Link>
+          {!authLoading && user ? (
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-black/5 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#202020] flex items-center justify-center text-white text-xs font-bold">
+                  {(profile?.full_name || user.email || '?')[0].toUpperCase()}
+                </div>
+                <span className="text-sm font-medium text-[#202020] max-w-[120px] truncate">
+                  {profile?.full_name || user.email?.split('@')[0]}
+                </span>
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white border border-black/5 shadow-lg shadow-black/5 py-1 z-50">
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#5c5c5c] hover:text-[#202020] hover:bg-neutral-50 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                  <div className="h-px bg-black/5 my-1" />
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#5c5c5c] hover:text-red-600 hover:bg-red-50/50 transition-colors w-full text-left"
+                  >
+                    <X className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : !authLoading ? (
+            <>
+              <Link to="/auth" className="text-sm font-medium text-[#5c5c5c] hover:text-[#202020]">Sign in</Link>
+              <Link to="/auth" className="text-sm font-semibold text-[#202020] hover:text-[#202020]">Sign up</Link>
+            </>
+          ) : null}
         </div>
 
         <button
@@ -135,13 +196,30 @@ export function NavBar() {
             className="md:hidden bg-[#f2f2f2] border-b border-black/5 overflow-hidden"
           >
             <div className="px-6 py-4 flex flex-col gap-4">
-              {["Product", "Features", "Pricing", "Changelog"].map((item) => (
-                <a key={item} href="#" className="text-base font-medium text-[#5c5c5c]">
-                  {item}
-                </a>
+              {[
+                { label: "Product", path: "/" },
+                { label: "Features", path: "/features" },
+                { label: "Pricing", path: "/pricing" },
+              ].map((item) => (
+                <Link key={item.label} to={item.path} onClick={() => setMobileMenuOpen(false)} className="text-base font-medium text-[#5c5c5c]">
+                  {item.label}
+                </Link>
               ))}
               <div className="h-px bg-black/5 my-2" />
-              <Link to="/auth"><Button className="w-full bg-[#202020] text-white rounded-xl">Get Started</Button></Link>
+              {user ? (
+                <>
+                  <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full bg-[#202020] text-white rounded-xl">Dashboard</Button>
+                  </Link>
+                  <button onClick={handleSignOut} className="text-sm text-[#5c5c5c] hover:text-[#202020]">
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full bg-[#202020] text-white rounded-xl">Get Started</Button>
+                </Link>
+              )}
             </div>
           </motion.div>
         )}
