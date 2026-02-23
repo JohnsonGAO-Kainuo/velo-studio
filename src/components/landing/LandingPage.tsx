@@ -114,8 +114,8 @@ export function NavBar() {
             <span className="BG" />
           </button>
 
-          <a href="#" className="text-sm font-medium text-[#5c5c5c] hover:text-[#202020]">Sign in</a>
-          <a href="#" className="text-sm font-semibold text-[#202020] hover:text-[#202020]">Sign up</a>
+          <Link to="/auth" className="text-sm font-medium text-[#5c5c5c] hover:text-[#202020]">Sign in</Link>
+          <Link to="/auth" className="text-sm font-semibold text-[#202020] hover:text-[#202020]">Sign up</Link>
         </div>
 
         <button
@@ -141,7 +141,7 @@ export function NavBar() {
                 </a>
               ))}
               <div className="h-px bg-black/5 my-2" />
-              <Button className="w-full bg-[#202020] text-white rounded-xl">Get Started</Button>
+              <Link to="/auth"><Button className="w-full bg-[#202020] text-white rounded-xl">Get Started</Button></Link>
             </div>
           </motion.div>
         )}
@@ -388,13 +388,13 @@ export function Pricing() {
                                 or <span className="font-semibold text-[#202020]">$68/year</span> <span className="text-green-600 font-medium">(save 29%)</span>
                             </div>
                         </div>
-                        <button className="uiverse-download mb-10" data-tooltip="Start Free Trial" onClick={() => window.open('#', '_blank')}>
+                        <Link to="/auth" className="uiverse-download mb-10" data-tooltip="Start Free Trial">
                           <div className="outline" />
                           <div className="state state--default">
                             <div className="icon"><Monitor className="w-5 h-5" /></div>
                             <p>Start Free Trial</p>
                           </div>
-                        </button>
+                        </Link>
                         <div className="text-center mb-8">
                             <p className="text-xs text-[#5c5c5c]">No credit card required • Cancel anytime</p>
                         </div>
