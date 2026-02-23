@@ -51,7 +51,8 @@ export function DashboardPage() {
   const handleSubscribe = async (plan: PlanChoice) => {
     setBillingLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // refreshSession() guarantees a fresh access_token (getSession can return stale/expired)
+      const { data: { session } } = await supabase.auth.refreshSession();
       if (!session) return;
 
       const res = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
@@ -78,7 +79,7 @@ export function DashboardPage() {
   const handleManageSubscription = async () => {
     setBillingLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.refreshSession();
       if (!session) return;
 
       const res = await fetch(`${supabaseUrl}/functions/v1/create-portal`, {
