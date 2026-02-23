@@ -1,11 +1,11 @@
 {
-  "buildCommand": "npm run build:web",
+  "buildCommand": "DISABLE_ELECTRON=1 vite build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
   ]
