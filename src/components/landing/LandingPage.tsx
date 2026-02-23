@@ -439,6 +439,7 @@ export function Features() {
 }
 
 export function Pricing() {
+    const { user, isSubscriptionActive } = useAuth();
     return (
         <section className="py-32 px-6 bg-white border-y border-black/5">
             <div className="max-w-7xl mx-auto">
@@ -466,15 +467,35 @@ export function Pricing() {
                                 or <span className="font-semibold text-[#202020]">$68/year</span> <span className="text-green-600 font-medium">(save 29%)</span>
                             </div>
                         </div>
-                        <Link to="/auth" className="uiverse-download mb-10" data-tooltip="Start Free Trial">
-                          <div className="outline" />
-                          <div className="state state--default">
-                            <div className="icon"><Monitor className="w-5 h-5" /></div>
-                            <p>Start Free Trial</p>
-                          </div>
-                        </Link>
+                        {user ? (
+                          isSubscriptionActive() ? (
+                            <Link to="/dashboard" className="uiverse-download mb-10" data-tooltip="Manage Subscription">
+                              <div className="outline" />
+                              <div className="state state--default">
+                                <div className="icon"><Monitor className="w-5 h-5" /></div>
+                                <p>Manage Subscription</p>
+                              </div>
+                            </Link>
+                          ) : (
+                            <Link to="/dashboard" className="uiverse-download mb-10" data-tooltip="Go to Dashboard">
+                              <div className="outline" />
+                              <div className="state state--default">
+                                <div className="icon"><Monitor className="w-5 h-5" /></div>
+                                <p>Subscribe Now</p>
+                              </div>
+                            </Link>
+                          )
+                        ) : (
+                          <Link to="/auth" className="uiverse-download mb-10" data-tooltip="Start Free Trial">
+                            <div className="outline" />
+                            <div className="state state--default">
+                              <div className="icon"><Monitor className="w-5 h-5" /></div>
+                              <p>Start Free Trial</p>
+                            </div>
+                          </Link>
+                        )}
                         <div className="text-center mb-8">
-                            <p className="text-xs text-[#5c5c5c]">No credit card required • Cancel anytime</p>
+                            <p className="text-xs text-[#5c5c5c]">{user ? 'All features included' : 'No credit card required • Cancel anytime'}</p>
                         </div>
                         <div className="border-t border-black/5 pt-8">
                             <h4 className="text-sm font-bold text-[#202020] mb-6 uppercase tracking-wider">Everything included:</h4>
