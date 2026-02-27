@@ -126,7 +126,7 @@ export function NavBar() {
         <div className="hidden md:flex items-center gap-4">
           <button
             className="github-btn"
-            onClick={() => window.open('https://github.com', '_blank')}
+            onClick={() => window.open('https://github.com/JohnsonGAO-Kainuo/velo-studio', '_blank')}
             aria-label="Star on GitHub"
           >
             <span className="svgContainer">
@@ -242,7 +242,7 @@ export function Hero() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
           </span>
-          <span className="text-sm font-medium text-[#5c5c5c]">Velo Studio 2.0 is live</span>
+          <span className="text-sm font-medium text-[#5c5c5c]">Velo Studio v1.0 is now available</span>
           <ArrowRight className="w-4 h-4 text-[#5c5c5c] ml-1" />
         </motion.div>
 
@@ -262,8 +262,8 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-xl text-[#5c5c5c] max-w-2xl mx-auto mb-10 leading-relaxed font-medium"
         >
-          The most beautiful screen recorder for macOS and Windows. 
-          Export in 4K, edit instantly, and share safely.
+          The most beautiful screen recorder for macOS. 
+          Record in 4K, edit instantly, and export with ease.
         </motion.p>
 
         <motion.div
@@ -372,7 +372,7 @@ export function Features() {
   const features = [
     {
       title: "Optimized Performance",
-      desc: "Built with Rust bindings for close-to-metal performance.",
+      desc: "Hardware-accelerated recording with minimal CPU usage.",
       icon: <Cpu className="w-6 h-6 text-[#202020]" />,
     },
     {
@@ -381,8 +381,8 @@ export function Features() {
       icon: <Shield className="w-6 h-6 text-[#202020]" />,
     },
     {
-      title: "Cloud Sync",
-      desc: "Optional sync to your favorite cloud storage providers.",
+      title: "AI Auto Zoom",
+      desc: "Intelligent zoom follows your cursor to highlight key actions.",
       icon: <Globe className="w-6 h-6 text-[#202020]" />,
     },
     {
@@ -391,13 +391,13 @@ export function Features() {
       icon: <Layers className="w-6 h-6 text-[#202020]" />,
     },
     {
-      title: "Instant Export",
-      desc: "Drag and drop to share files immediately after recording.",
+      title: "Flexible Export",
+      desc: "Export to MP4 or GIF with customizable quality settings.",
       icon: <Zap className="w-6 h-6 text-[#202020]" />,
     },
     {
       title: "Customizable",
-      desc: "Global hotkeys, custom frame rates, and more.",
+      desc: "Custom backgrounds, frame rates, and recording presets.",
       icon: <Settings className="w-6 h-6 text-[#202020]" />,
     },
   ];
@@ -508,7 +508,7 @@ export function Pricing() {
                                     "Export to MP4 & GIF",
                                     "Motion blur effects",
                                     "Custom backgrounds",
-                                    "Priority support"
+                                    "Annotation & text overlays"
                                 ].map(item => (
                                     <li key={item} className="flex items-center gap-3 text-sm text-[#5c5c5c]">
                                         <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#202020] flex items-center justify-center">
@@ -524,7 +524,7 @@ export function Pricing() {
                 
                 {/* Trust badges */}
                 <div className="mt-20 text-center">
-                    <p className="text-sm text-[#5c5c5c] mb-6">Trusted by creators worldwide</p>
+                    <p className="text-sm text-[#5c5c5c] mb-6">Built for creators who care about quality</p>
                     <div className="flex items-center justify-center gap-8 text-xs text-[#5c5c5c]">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -560,7 +560,7 @@ export function Footer() {
             Crafting the future of screen recording with pixel-perfect design and robust engineering.
           </p>
             <div className="flex gap-4">
-      <a href="#" className="p-2 rounded-full bg-white border border-black/5 text-[#5c5c5c] hover:text-[#202020] hover:scale-110 transition-all">
+      <a href="https://github.com/JohnsonGAO-Kainuo/velo-studio" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-white border border-black/5 text-[#5c5c5c] hover:text-[#202020] hover:scale-110 transition-all">
         <Globe className="w-4 h-4" />
       </a>
       </div>
@@ -606,9 +606,9 @@ export function FAQ() {
 
   const faqs = [
     { question: "Does Velo Studio support 4K recording?", answer: "Yes, Velo Studio supports 4K recording at 60fps on supported hardware, ensuring your content looks crisp and professional." },
-    { question: "Is my data safe?", answer: "Absolutely. All recording and processing happens locally on your machine. We never upload your video files to any server unless you explicitly choose a cloud sync option." },
+    { question: "Is my data safe?", answer: "Absolutely. All recording and processing happens locally on your machine. We never upload your video files to any server. Your content stays private and under your control." },
     { question: "Can I edit videos within the app?", answer: "Yes, Velo Studio comes with a powerful built-in editor that lets you trim, cut, annotate, and add effects to your recordings instantly." },
-    { question: "Is there a Windows version?", answer: "Currently, Velo Studio is optimized for macOS. A Windows version is in development and will be released soon." },
+    { question: "Is there a Windows version?", answer: "Currently, Velo Studio is available for macOS only. A Windows version is on our roadmap — stay tuned for updates." },
   ];
 
   return (
@@ -617,7 +617,7 @@ export function FAQ() {
         <div className="text-center mb-16">
            <span className="text-sm font-semibold text-[#202020] uppercase tracking-widest mb-2 block">Support</span>
           <h2 className="text-4xl font-bold text-[#202020] mb-6">Frequently Asked Questions</h2>
-          <p className="text-[#5c5c5c]">Have a different question? <a href="#" className="underline hover:text-[#202020]">Contact support</a></p>
+          <p className="text-[#5c5c5c]">Have a different question? <a href="mailto:contact@kainuotech.com" className="underline hover:text-[#202020]">Contact support</a></p>
         </div>
 
         <div className="space-y-4">

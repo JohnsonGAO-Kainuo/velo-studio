@@ -25,7 +25,7 @@ export function PrivacyPolicy() {
             <ul className="list-disc pl-6 space-y-2">
               <li>All screen recordings are captured and processed locally on your device.</li>
               <li>We do not upload your video files to our servers.</li>
-              <li>Your content remains private and under your control at all times unless you explicitly choose to share it via third-party integrations (e.g., cloud storage upload).</li>
+              <li>Your content remains private and under your control at all times.</li>
             </ul>
           </section>
 
@@ -36,7 +36,7 @@ export function PrivacyPolicy() {
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li><strong>Usage Data:</strong> We may collect anonymous analytical data about how you use the application (e.g., feature usage, crash reports) to help us improve stability and user experience.</li>
-              <li><strong>Account Information:</strong> If you purchase a license, we process your payment information through our secure payment providers (e.g., Stripe, Lemonsqueezy). We do not store credit card details on our servers.</li>
+              <li><strong>Account Information:</strong> If you purchase a subscription, we process your payment information through our secure payment provider (Stripe). We do not store credit card details on our servers.</li>
             </ul>
           </section>
 
