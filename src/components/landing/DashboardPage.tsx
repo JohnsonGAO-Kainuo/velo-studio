@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase, supabaseUrl } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { CreditCard, LogOut, Clock, CheckCircle, AlertTriangle, Download, User, ChevronRight, Zap } from 'lucide-react';
 
 type PlanChoice = 'monthly' | 'yearly';
@@ -51,24 +51,14 @@ export function DashboardPage() {
   const handleSubscribe = async (plan: PlanChoice) => {
     setBillingLoading(true);
     try {
-      // refreshSession() guarantees a fresh access_token (getSession can return stale/expired)
-      const { data: { session } } = await supabase.auth.refreshSession();
-      if (!session) return;
-
-      const res = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ plan }),
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { plan },
       });
-      const data = await res.json();
-      if (data.error) {
-        console.error('Checkout error:', data.error);
+      if (error) {
+        console.error('Checkout error:', error);
         return;
       }
-      if (data.url) window.location.href = data.url;
+      if (data?.url) window.location.href = data.url;
     } catch (err) {
       console.error('Billing error:', err);
     } finally {
@@ -79,18 +69,12 @@ export function DashboardPage() {
   const handleManageSubscription = async () => {
     setBillingLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.refreshSession();
-      if (!session) return;
-
-      const res = await fetch(`${supabaseUrl}/functions/v1/create-portal`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      const { data, error } = await supabase.functions.invoke('create-portal');
+      if (error) {
+        console.error('Portal error:', error);
+        return;
+      }
+      if (data?.url) window.location.href = data.url;
     } catch (err) {
       console.error('Portal error:', err);
     } finally {
