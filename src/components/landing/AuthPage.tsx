@@ -5,7 +5,6 @@ import { FcGoogle } from 'react-icons/fc';
 import { HiOutlineMail } from 'react-icons/hi';
 import { RiLockPasswordLine } from 'react-icons/ri';
 import { FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
-import { Logo } from '@/components/landing/Logo';
 
 export function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -96,9 +95,7 @@ export function AuthPage() {
         {/* Brand Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
-            <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center">
-              <Logo className="w-8 h-8" />
-            </div>
+            <img src="/favicon.svg" alt="Velo Studio" className="w-12 h-12" />
           </div>
           <h1 className="text-3xl font-bold text-[#202020] mb-2">
             {isSignUp ? 'Start your free trial' : 'Welcome back'}
