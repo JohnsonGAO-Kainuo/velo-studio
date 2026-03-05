@@ -5,6 +5,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { HiOutlineMail } from 'react-icons/hi';
 import { RiLockPasswordLine } from 'react-icons/ri';
 import { FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
+import { Logo } from '@/components/landing/Logo';
 
 export function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -92,15 +93,20 @@ export function AuthPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Header */}
+        {/* Brand Header */}
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-6">
+            <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center">
+              <Logo className="w-8 h-8" />
+            </div>
+          </div>
           <h1 className="text-3xl font-bold text-[#202020] mb-2">
             {isSignUp ? 'Start your free trial' : 'Welcome back'}
           </h1>
-          <p className="text-[#5c5c5c]">
+          <p className="text-[#5c5c5c] text-sm">
             {isSignUp 
-              ? '14 days free. No credit card required.' 
-              : 'Sign in to your Velo Studio account'}
+              ? '14 days free access to Velo Studio' 
+              : 'Sign in to Velo Studio'}
           </p>
         </div>
 
@@ -208,10 +214,15 @@ export function AuthPage() {
           <div className="mt-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-100">
               <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-xs text-green-700 font-medium">14-day free trial • Full access • No credit card</span>
+              <span className="text-xs text-green-700 font-medium">14-day free trial • Full features • No credit card required</span>
             </div>
           </div>
         )}
+
+        {/* Info Note */}
+        <p className="text-xs text-[#999] text-center mt-6">
+          Protected by Supabase Auth with industry-standard security
+        </p>
       </div>
     </div>
   );
