@@ -152,7 +152,7 @@ export function ElectronAuth() {
             Subscribe to continue using Velo Studio. Plans start at $8/month.
           </p>
           <button
-            onClick={() => (window as any).electronAPI?.openExternalUrl('https://velo-studio.kainuotech.com/dashboard')}
+            onClick={() => (window as any).electronAPI?.openExternalUrl('https://velostudio.app/dashboard')}
             className="w-full py-3 rounded-xl bg-[#202020] text-white font-semibold text-sm hover:bg-[#333] transition-colors mb-3"
           >
             Subscribe Now

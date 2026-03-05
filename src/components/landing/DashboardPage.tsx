@@ -51,6 +51,13 @@ export function DashboardPage() {
   const handleSubscribe = async (plan: PlanChoice) => {
     setBillingLoading(true);
     try {
+      // Refresh session to ensure a valid access token is sent
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Session refresh failed:', refreshError);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { plan },
       });
@@ -69,6 +76,13 @@ export function DashboardPage() {
   const handleManageSubscription = async () => {
     setBillingLoading(true);
     try {
+      // Refresh session to ensure a valid access token is sent
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Session refresh failed:', refreshError);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('create-portal');
       if (error) {
         console.error('Portal error:', error);
