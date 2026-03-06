@@ -52,7 +52,7 @@ export function AuthPage() {
         if (err) {
           setError(err);
         } else {
-          navigate('/');
+          navigate('/dashboard');
         }
       }
     } finally {

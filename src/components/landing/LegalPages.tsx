@@ -6,7 +6,7 @@ export function PrivacyPolicy() {
       <div className="max-w-3xl mx-auto px-6 py-12">
         <h1 className="text-4xl font-bold text-[#202020] mb-8">Privacy Policy</h1>
         <div className="prose prose-stone max-w-none space-y-6">
-          <p className="text-sm text-[#5c5c5c]">Last updated: {new Date().toLocaleDateString()}</p>
+          <p className="text-sm text-[#5c5c5c]">Last updated: June 8, 2025</p>
           
           <section>
             <h2 className="text-2xl font-bold text-[#202020] mb-4">1. Introduction</h2>
@@ -59,7 +59,7 @@ export function TermsOfService() {
       <div className="max-w-3xl mx-auto px-6 py-12">
         <h1 className="text-4xl font-bold text-[#202020] mb-8">Terms of Service</h1>
         <div className="prose prose-stone max-w-none space-y-6">
-          <p className="text-sm text-[#5c5c5c]">Last updated: {new Date().toLocaleDateString()}</p>
+          <p className="text-sm text-[#5c5c5c]">Last updated: June 8, 2025</p>
 
           <section>
             <h2 className="text-2xl font-bold text-[#202020] mb-4">1. Acceptance of Terms</h2>

@@ -711,7 +711,7 @@ export function SettingsPanel({
         <div className="grid grid-cols-2 gap-2 mt-2">
           <PushButton
             onClick={() => {
-              window.electronAPI?.openExternalUrl('https://velostudio.app');
+              window.electronAPI?.openExternalUrl('https://github.com/JohnsonGAO-Kainuo/velo-studio/issues');
             }}
             variant="ghost"
             size="sm"
@@ -722,7 +722,7 @@ export function SettingsPanel({
           </PushButton>
           <PushButton
             onClick={() => {
-              window.electronAPI?.openExternalUrl('https://velostudio.app');
+              window.electronAPI?.openExternalUrl('https://github.com/JohnsonGAO-Kainuo/velo-studio');
             }}
             variant="ghost"
             size="sm"
