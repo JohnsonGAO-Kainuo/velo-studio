@@ -8,7 +8,7 @@ import { PushButton } from "@/components/ui/push-button";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Block from '@uiw/react-color-block';
-import { Trash2, Download, Crop, X, Bug, Upload, Star, Film, Image } from "lucide-react";
+import { Trash2, Download, Crop, X, Bug, Upload, Star, Film, Image, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import type { ZoomDepth, CropRegion, AnnotationRegion, AnnotationType } from "./types";
 import { CropControl } from "./CropControl";
@@ -697,10 +697,21 @@ export function SettingsPanel({
           <Download className="w-5 h-5" />
           Export {exportFormat === 'gif' ? 'GIF' : 'Video'}
         </PushButton>
-        <div className="grid grid-cols-2 gap-2 mt-3">
+        <PushButton
+          onClick={() => {
+            window.electronAPI?.openExternalUrl('https://velostudio.app/dashboard');
+          }}
+          variant="ghost"
+          size="sm"
+          className="w-full gap-1.5 mt-3"
+        >
+          <CreditCard className="w-3.5 h-3.5 text-[#5c5c5c]" />
+          Manage Subscription
+        </PushButton>
+        <div className="grid grid-cols-2 gap-2 mt-2">
           <PushButton
             onClick={() => {
-              window.electronAPI?.openExternalUrl('https://github.com/siddharthvaddem/openscreen/issues/new/choose');
+              window.electronAPI?.openExternalUrl('https://velostudio.app');
             }}
             variant="ghost"
             size="sm"
@@ -711,7 +722,7 @@ export function SettingsPanel({
           </PushButton>
           <PushButton
             onClick={() => {
-              window.electronAPI?.openExternalUrl('https://github.com/siddharthvaddem/openscreen');
+              window.electronAPI?.openExternalUrl('https://velostudio.app');
             }}
             variant="ghost"
             size="sm"

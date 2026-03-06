@@ -176,7 +176,7 @@ export function DashboardPage() {
                 <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${Math.max(5, ((14 - trialDaysLeft()) / 14) * 100)}%` }}
+                    style={{ width: `${Math.max(5, ((7 - trialDaysLeft()) / 7) * 100)}%` }}
                   />
                 </div>
                 <p className="text-xs text-blue-600 mt-1.5">

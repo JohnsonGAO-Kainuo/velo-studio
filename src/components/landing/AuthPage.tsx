@@ -76,7 +76,7 @@ export function AuthPage() {
           <h2 className="text-2xl font-bold text-[#202020] mb-3">Check your email</h2>
           <p className="text-[#5c5c5c] mb-6">
             We've sent a confirmation link to <span className="font-semibold text-[#202020]">{email}</span>. 
-            Click the link to activate your account and start your 14-day free trial.
+            Click the link to activate your account and start your 7-day free trial.
           </p>
           <button
             onClick={() => { setConfirmationSent(false); setIsSignUp(false); }}
@@ -102,7 +102,7 @@ export function AuthPage() {
           </h1>
           <p className="text-[#5c5c5c] text-sm">
             {isSignUp 
-              ? '14 days free access to Velo Studio' 
+              ? '7 days free access to Velo Studio' 
               : 'Sign in to Velo Studio'}
           </p>
         </div>
@@ -211,7 +211,7 @@ export function AuthPage() {
           <div className="mt-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-100">
               <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-xs text-green-700 font-medium">14-day free trial • Full features • No credit card required</span>
+              <span className="text-xs text-green-700 font-medium">7-day free trial • Full features • No credit card required</span>
             </div>
           </div>
         )}

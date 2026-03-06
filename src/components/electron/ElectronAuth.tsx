@@ -215,7 +215,7 @@ export function ElectronAuth() {
             {isSignUp ? 'Create your account' : 'Welcome to Velo'}
           </h1>
           <p className="text-sm text-[#5c5c5c]">
-            {isSignUp ? '14 days free. No credit card required.' : 'Sign in to start recording'}
+            {isSignUp ? '7 days free. No credit card required.' : 'Sign in to start recording'}
           </p>
         </div>
 
