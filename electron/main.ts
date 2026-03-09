@@ -4,6 +4,7 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { createHudOverlayWindow, createEditorWindow, createSourceSelectorWindow, createAuthWindow } from './windows'
 import { registerIpcHandlers } from './ipc/handlers'
+import { initAutoUpdater } from './updater'
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -25,6 +26,48 @@ protocol.registerSchemesAsPrivileged([
 
 // Set app name for development mode (production uses electron-builder config)
 app.setName('Velo Studio')
+
+// Deep link protocol for OAuth callback
+const DEEP_LINK_PROTOCOL = 'velostudio'
+
+// Register as default protocol client
+if (process.defaultApp && process.argv.length >= 2) {
+  // Development mode: need to pass script path
+  app.setAsDefaultProtocolClient(DEEP_LINK_PROTOCOL, process.execPath, [path.resolve(process.argv[1])])
+} else {
+  // Production mode
+  app.setAsDefaultProtocolClient(DEEP_LINK_PROTOCOL)
+}
+
+// Pending deep link URL (received before app is ready)
+let pendingDeepLinkUrl: string | null = null
+
+function handleDeepLink(url: string) {
+  console.log('[Deep Link] Received:', url)
+  try {
+    const parsed = new URL(url)
+    const accessToken = parsed.searchParams.get('access_token')
+    const refreshToken = parsed.searchParams.get('refresh_token')
+    if (accessToken && refreshToken) {
+      console.log('[Deep Link] Got auth tokens, sending to auth window')
+      if (authWindow && !authWindow.isDestroyed()) {
+        authWindow.webContents.send('deep-link-auth', { accessToken, refreshToken })
+        authWindow.focus()
+      } else {
+        // Auth window might not exist yet, store for later
+        pendingDeepLinkUrl = url
+      }
+    }
+  } catch (err) {
+    console.error('[Deep Link] Failed to parse URL:', err)
+  }
+}
+
+// macOS: handle deep link when app is already running
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  handleDeepLink(url)
+})
 
 export const RECORDINGS_DIR = path.join(app.getPath('userData'), 'recordings')
 
@@ -229,4 +272,17 @@ app.whenReady().then(async () => {
   authWindow.on('closed', () => {
     authWindow = null;
   })
+
+  // Check for pending deep link (received before auth window was ready)
+  if (pendingDeepLinkUrl) {
+    setTimeout(() => {
+      if (pendingDeepLinkUrl) {
+        handleDeepLink(pendingDeepLinkUrl)
+        pendingDeepLinkUrl = null
+      }
+    }, 1500)
+  }
+
+  // Initialize auto-updater (checks GitHub Releases for new versions)
+  initAutoUpdater()
 })

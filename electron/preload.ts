@@ -95,4 +95,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   authReady: () => {
     ipcRenderer.send('auth-ready')
   },
+  // Deep link OAuth callback - receive tokens from browser OAuth flow
+  onDeepLinkAuth: (callback: (data: { accessToken: string; refreshToken: string }) => void) => {
+    const listener = (_: any, data: { accessToken: string; refreshToken: string }) => callback(data)
+    ipcRenderer.on('deep-link-auth', listener)
+    return () => ipcRenderer.removeListener('deep-link-auth', listener)
+  },
 })

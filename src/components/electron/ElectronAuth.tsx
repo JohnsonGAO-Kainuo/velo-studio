@@ -115,10 +115,37 @@ export function ElectronAuth() {
   const handleGoogleSignIn = async () => {
     setError('');
     // For Electron, open Google OAuth in external browser
+    // redirect_to points to our website with source=electron flag
+    // After OAuth, the website will redirect to velostudio:// deep link with tokens
+    const redirectTo = encodeURIComponent('https://velostudio.app/auth/callback?source=electron');
     (window as any).electronAPI?.openExternalUrl(
-      `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(supabaseUrl + '/auth/v1/callback')}`
+      `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`
     );
   };
+
+  // Listen for deep link auth tokens (from browser OAuth callback)
+  useEffect(() => {
+    const cleanup = (window as any).electronAPI?.onDeepLinkAuth?.(
+      async (data: { accessToken: string; refreshToken: string }) => {
+        console.log('[ElectronAuth] Received deep link auth tokens');
+        try {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          });
+          if (sessionError) {
+            console.error('[ElectronAuth] setSession error:', sessionError);
+            setError('Authentication failed: ' + sessionError.message);
+          }
+          // onAuthStateChange will handle the rest (fetch profile, signal auth-ready)
+        } catch (err) {
+          console.error('[ElectronAuth] Deep link auth error:', err);
+          setError('Failed to complete authentication');
+        }
+      }
+    );
+    return () => cleanup?.();
+  }, []);
 
   // Loading state
   if (checking) {

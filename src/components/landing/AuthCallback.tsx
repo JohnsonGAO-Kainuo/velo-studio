@@ -7,18 +7,21 @@ import { supabase } from '@/lib/supabase';
  * - Email confirmation
  * - OAuth callbacks (Google)
  * - Magic link logins
+ * - Electron deep link OAuth flow (source=electron)
  * 
  * Supabase redirects to this page with hash fragments containing tokens.
- * We exchange them for a session and redirect to the dashboard.
+ * For web: exchange tokens and redirect to dashboard.
+ * For Electron: extract tokens and redirect to velostudio:// deep link.
  */
 export function AuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [electronRedirect, setElectronRedirect] = useState(false);
+  const [electronTokens, setElectronTokens] = useState<{ accessToken: string; refreshToken: string } | null>(null);
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Check for error in URL params
         const params = new URLSearchParams(window.location.search);
         const errorParam = params.get('error');
         const errorDescription = params.get('error_description');
@@ -28,16 +31,21 @@ export function AuthCallback() {
           return;
         }
 
+        // Check if this callback is from Electron app OAuth
+        const source = params.get('source');
+        if (source === 'electron') {
+          await handleElectronCallback();
+          return;
+        }
+
         // Check for checkout success
         const checkout = params.get('checkout');
         if (checkout === 'success') {
-          // User came back from Stripe checkout - refresh profile and go to dashboard
           navigate('/dashboard', { replace: true });
           return;
         }
 
-        // Supabase handles the hash fragment automatically with getSession
-        // The @supabase/supabase-js client will detect the tokens in the URL hash
+        // Standard web OAuth callback
         const { data, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
@@ -47,10 +55,8 @@ export function AuthCallback() {
         }
 
         if (data.session) {
-          // Successfully authenticated - go to dashboard
           navigate('/dashboard', { replace: true });
         } else {
-          // No session found - try to exchange code if present
           const code = params.get('code');
           if (code) {
             const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
@@ -60,7 +66,6 @@ export function AuthCallback() {
             }
             navigate('/dashboard', { replace: true });
           } else {
-            // No session and no code - redirect to auth page
             navigate('/auth', { replace: true });
           }
         }
@@ -70,8 +75,64 @@ export function AuthCallback() {
       }
     };
 
+    const handleElectronCallback = async () => {
+      // Extract tokens from URL hash (implicit OAuth flow)
+      const hash = window.location.hash.substring(1);
+      const hashParams = new URLSearchParams(hash);
+      let accessToken = hashParams.get('access_token');
+      let refreshToken = hashParams.get('refresh_token');
+
+      // If no hash tokens, try getting session (Supabase might have auto-processed)
+      if (!accessToken || !refreshToken) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          accessToken = data.session.access_token;
+          refreshToken = data.session.refresh_token;
+        }
+      }
+
+      if (accessToken && refreshToken) {
+        // Redirect to Electron app via deep link
+        const deepLinkUrl = `velostudio://auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+        setElectronRedirect(true);
+        setElectronTokens({ accessToken, refreshToken });
+        window.location.href = deepLinkUrl;
+      } else {
+        setError('Failed to get authentication tokens. Please try again.');
+      }
+    };
+
     handleCallback();
   }, [navigate]);
+
+  // Electron redirect: show "Return to app" UI
+  if (electronRedirect) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-[#202020] mb-3">Login Successful!</h2>
+          <p className="text-[#5c5c5c] mb-6">Redirecting you back to Velo Studio...</p>
+          <button
+            onClick={() => {
+              if (electronTokens) {
+                window.location.href = `velostudio://auth/callback?access_token=${encodeURIComponent(electronTokens.accessToken)}&refresh_token=${encodeURIComponent(electronTokens.refreshToken)}`;
+              }
+            }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#202020] text-white font-semibold text-sm hover:bg-[#333] transition-colors"
+          >
+            Open Velo Studio
+          </button>
+          <p className="text-xs text-[#999] mt-4">You can close this tab after the app opens.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

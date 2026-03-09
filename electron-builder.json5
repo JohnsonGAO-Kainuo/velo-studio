@@ -4,9 +4,22 @@
   "appId": "com.kainuo.velostudio",
   "asar": true,
   "productName": "Velo Studio",
+  "protocols": [
+    {
+      "name": "Velo Studio",
+      "schemes": ["velostudio"]
+    }
+  ],
   "npmRebuild": true,
   "buildDependenciesFromSource": true,
   "compression": "normal",
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "JohnsonGAO-Kainuo",
+      "repo": "velo-studio"
+    }
+  ],
   "directories": {
     "output": "release/${version}"
   },
@@ -32,15 +45,20 @@
       {
         "target": "dmg",
         "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
       }
     ],
     "icon": "icons/icons/mac/icon.icns",
     "artifactName": "${productName}-Mac-${arch}-${version}-Installer.${ext}",
+    "identity": null,
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
     "entitlements": "build/entitlements.mac.plist",
     "entitlementsInherit": "build/entitlements.mac.plist",
-    "notarize": true
+    "notarize": false
   },
   "linux": {
     "target": [
