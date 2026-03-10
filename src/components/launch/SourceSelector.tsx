@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { MdCheck } from "react-icons/md";
+import { MdCheck, MdMonitor } from "react-icons/md";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Card } from "../ui/card";
 import styles from "./SourceSelector.module.css";
@@ -17,34 +17,50 @@ export function SourceSelector() {
   const [sources, setSources] = useState<DesktopSource[]>([]);
   const [selectedSource, setSelectedSource] = useState<DesktopSource | null>(null);
   const [loading, setLoading] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  const fetchSources = async () => {
+    setLoading(true);
+    try {
+      // Check screen recording permission on macOS before calling desktopCapturer
+      if (window.electronAPI?.checkScreenPermission) {
+        const status = await window.electronAPI.checkScreenPermission();
+        if (status !== 'granted') {
+          setPermissionDenied(true);
+          setSources([]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setPermissionDenied(false);
+      const rawSources = await window.electronAPI.getSources({
+        types: ['screen', 'window'],
+        thumbnailSize: { width: 640, height: 360 },
+        fetchWindowIcons: true
+      });
+
+      setSources(
+        rawSources.map(source => ({
+          id: source.id,
+          name:
+            source.id.startsWith('window:') && source.name.includes(' — ')
+              ? source.name.split(' — ')[1] || source.name
+              : source.name,
+          thumbnail: source.thumbnail,
+          display_id: source.display_id,
+          appIcon: source.appIcon
+        }))
+      );
+    } catch (error) {
+      console.error('Error loading sources:', error);
+      setSources([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchSources() {
-      setLoading(true);
-      try {
-        const rawSources = await window.electronAPI.getSources({
-          types: ['screen', 'window'],
-          thumbnailSize: { width: 640, height: 360 },
-          fetchWindowIcons: true
-        });
-        setSources(
-          rawSources.map(source => ({
-            id: source.id,
-            name:
-              source.id.startsWith('window:') && source.name.includes(' — ')
-                ? source.name.split(' — ')[1] || source.name
-                : source.name,
-            thumbnail: source.thumbnail,
-            display_id: source.display_id,
-            appIcon: source.appIcon
-          }))
-        );
-      } catch (error) {
-        console.error('Error loading sources:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchSources();
   }, []);
 
@@ -62,6 +78,59 @@ export function SourceSelector() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neutral-400 mx-auto mb-2" />
           <p className="text-xs text-neutral-600">Loading sources...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (permissionDenied) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center ${styles.glassContainer}`}>
+        <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+          <MdMonitor className="w-7 h-7 text-orange-600" />
+        </div>
+        <h3 className="text-sm font-semibold text-neutral-800 mb-2">Screen Recording Permission Required</h3>
+        <p className="text-xs text-neutral-500 mb-5 max-w-[260px] leading-relaxed">
+          Open System Settings → Privacy & Security → Screen Recording and grant access to Velo Studio. You may need to remove the old entry first and re-add it.
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => window.close()} className="px-4 py-1.5 text-xs bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              window.electronAPI?.openExternalUrl('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+            }}
+            className="px-4 py-1.5 text-xs bg-[#34B27B] text-white hover:bg-[#34B27B]/90"
+          >
+            Open Settings
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (sources.length === 0) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center ${styles.glassContainer}`}>
+        <div className="w-14 h-14 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
+          <MdMonitor className="w-7 h-7 text-neutral-600" />
+        </div>
+        <h3 className="text-sm font-semibold text-neutral-800 mb-2">No capturable sources found</h3>
+        <p className="text-xs text-neutral-500 mb-5 max-w-[280px] leading-relaxed">
+          If you just granted Screen Recording permission, macOS requires quitting and reopening Velo Studio before sources appear.
+        </p>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={fetchSources}
+            className="px-4 py-1.5 text-xs bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50"
+          >
+            Retry
+          </Button>
+          <Button variant="outline" onClick={() => window.close()} className="px-4 py-1.5 text-xs bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50">
+            Close
+          </Button>
         </div>
       </div>
     );

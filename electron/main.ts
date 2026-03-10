@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, protocol, net } from 'electron'
+import { app, BrowserWindow, Tray, Menu, nativeImage, protocol, net, systemPreferences } from 'electron'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -46,9 +46,18 @@ function handleDeepLink(url: string) {
   console.log('[Deep Link] Received:', url)
   try {
     const parsed = new URL(url)
+    const code = parsed.searchParams.get('code')
     const accessToken = parsed.searchParams.get('access_token')
     const refreshToken = parsed.searchParams.get('refresh_token')
-    if (accessToken && refreshToken) {
+    if (code) {
+      console.log('[Deep Link] Got auth code, sending to auth window')
+      if (authWindow && !authWindow.isDestroyed()) {
+        authWindow.webContents.send('oauth-callback', { code })
+        authWindow.focus()
+      } else {
+        pendingDeepLinkUrl = url
+      }
+    } else if (accessToken && refreshToken) {
       console.log('[Deep Link] Got auth tokens, sending to auth window')
       if (authWindow && !authWindow.isDestroyed()) {
         authWindow.webContents.send('deep-link-auth', { accessToken, refreshToken })
@@ -247,6 +256,86 @@ app.whenReady().then(async () => {
       }
       createWindow();
     });
+
+    // OAuth: open Google sign-in in a dedicated BrowserWindow (replaces unreliable deep links)
+    ipcMain.handle('open-oauth-window', (_, url: string) => {
+      const oauthWin = new BrowserWindow({
+        width: 500,
+        height: 700,
+        title: 'Sign in - Velo Studio',
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+          partition: 'oauth', // isolated session so interceptor doesn't affect main windows
+        },
+      })
+
+      // Intercept the callback URL BEFORE the page loads to extract the auth code (PKCE)
+      oauthWin.webContents.session.webRequest.onBeforeRequest(
+        { urls: ['https://velostudio.app/auth/callback*'] },
+        (details, callback) => {
+          try {
+            const parsed = new URL(details.url)
+            const code = parsed.searchParams.get('code')
+            if (code) {
+              console.log('[OAuth Window] Intercepted auth code, sending to auth window')
+              if (authWindow && !authWindow.isDestroyed()) {
+                authWindow.webContents.send('oauth-callback', { code })
+              }
+              setImmediate(() => {
+                if (!oauthWin.isDestroyed()) oauthWin.close()
+              })
+              callback({ cancel: true })
+              return
+            }
+          } catch (err) {
+            console.error('[OAuth Window] Failed to parse callback URL:', err)
+          }
+          callback({})
+        }
+      )
+
+      // Fallback: if onBeforeRequest doesn't catch it (e.g. client-side redirect)
+      oauthWin.webContents.on('did-navigate', (_event, navUrl) => {
+        if (navUrl.startsWith('https://velostudio.app/auth/callback')) {
+          try {
+            const parsed = new URL(navUrl)
+            const code = parsed.searchParams.get('code')
+            if (code) {
+              console.log('[OAuth Window] Fallback: caught auth code via did-navigate')
+              if (authWindow && !authWindow.isDestroyed()) {
+                authWindow.webContents.send('oauth-callback', { code })
+              }
+              if (!oauthWin.isDestroyed()) oauthWin.close()
+            }
+          } catch (err) {
+            console.error('[OAuth Window] did-navigate error:', err)
+          }
+        }
+      })
+
+      oauthWin.loadURL(url)
+    })
+
+    // Permission checking (macOS)
+    ipcMain.handle('check-screen-permission', () => {
+      if (process.platform === 'darwin') {
+        return systemPreferences.getMediaAccessStatus('screen')
+      }
+      return 'granted'
+    })
+
+    ipcMain.handle('check-microphone-permission', async () => {
+      if (process.platform === 'darwin') {
+        const status = systemPreferences.getMediaAccessStatus('microphone')
+        if (status === 'not-determined') {
+          const granted = await systemPreferences.askForMediaAccess('microphone')
+          return granted ? 'granted' : 'denied'
+        }
+        return status
+      }
+      return 'granted'
+    })
 
     createTray()
     updateTrayMenu()

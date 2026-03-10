@@ -83,6 +83,17 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
 
   const startRecording = async () => {
     try {
+      // Pre-check screen recording permission (macOS) to avoid confusing system dialog
+      if (window.electronAPI?.checkScreenPermission) {
+        const permStatus = await window.electronAPI.checkScreenPermission();
+        if (permStatus !== 'granted') {
+          window.electronAPI?.openExternalUrl?.(
+            'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
+          );
+          return;
+        }
+      }
+
       const selectedSource = await window.electronAPI.getSelectedSource();
       if (!selectedSource) {
         alert("Please select a source to record");

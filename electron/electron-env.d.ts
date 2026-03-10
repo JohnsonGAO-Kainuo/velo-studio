@@ -52,6 +52,15 @@ interface Window {
     recordCursorClick: (button: number) => Promise<{ success: boolean }>;
     saveCursorData: (videoPath: string, cursorData: string) => Promise<{ success: boolean; path?: string; error?: string }>;
     loadCursorData: (videoPath: string) => Promise<{ success: boolean; data?: string; error?: string }>;
+    // Auth flow
+    authReady: () => void;
+    onDeepLinkAuth: (callback: (data: { accessToken: string; refreshToken: string }) => void) => () => void;
+    // OAuth in-app window (primary flow)
+    openOAuthWindow: (url: string) => Promise<void>;
+    onOAuthCallback: (callback: (data: { code?: string; accessToken?: string; refreshToken?: string }) => void) => () => void;
+    // Permission checking (macOS)
+    checkScreenPermission: () => Promise<string>;
+    checkMicrophonePermission: () => Promise<string>;
   }
 }
 

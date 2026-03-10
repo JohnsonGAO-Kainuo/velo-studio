@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, supabaseUrl, type UserProfile } from '@/lib/supabase';
+import { supabase, type UserProfile } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import { FcGoogle } from 'react-icons/fc';
 import { HiOutlineMail } from 'react-icons/hi';
@@ -26,6 +26,8 @@ export function ElectronAuth() {
   const [loading, setLoading] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
 
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
@@ -46,6 +48,20 @@ export function ElectronAuth() {
     return isTrial || isActive;
   }, []);
 
+  const ensureAccessAndNotifyMain = useCallback(async (userId: string): Promise<boolean> => {
+    // Supabase profile row can be briefly unavailable right after OAuth/session exchange.
+    // Retry a few times before giving up to avoid requiring app restart.
+    for (let i = 0; i < 8; i++) {
+      const p = await fetchProfile(userId);
+      if (checkAccess(p)) {
+        (window as any).electronAPI?.authReady();
+        return true;
+      }
+      await sleep(500);
+    }
+    return false;
+  }, [fetchProfile, checkAccess]);
+
   // Check existing session on mount
   useEffect(() => {
     const checkSession = async () => {
@@ -53,11 +69,7 @@ export function ElectronAuth() {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setUser(session.user);
-          const p = await fetchProfile(session.user.id);
-          if (checkAccess(p)) {
-            // Has access - signal main process to switch to HUD
-            (window as any).electronAPI?.authReady();
-          }
+          await ensureAccessAndNotifyMain(session.user.id);
         }
       } catch (err) {
         console.error('Session check error:', err);
@@ -71,17 +83,14 @@ export function ElectronAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        const p = await fetchProfile(session.user.id);
-        if (checkAccess(p)) {
-          (window as any).electronAPI?.authReady();
-        }
+        await ensureAccessAndNotifyMain(session.user.id);
       } else {
         setProfile(null);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile, checkAccess]);
+  }, [ensureAccessAndNotifyMain]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,38 +123,77 @@ export function ElectronAuth() {
 
   const handleGoogleSignIn = async () => {
     setError('');
-    // For Electron, open Google OAuth in external browser
-    // redirect_to points to our website with source=electron flag
-    // After OAuth, the website will redirect to velostudio:// deep link with tokens
-    const redirectTo = encodeURIComponent('https://velostudio.app/auth/callback?source=electron');
-    (window as any).electronAPI?.openExternalUrl(
-      `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`
-    );
+    setLoading(true);
+    try {
+      // Use Supabase PKCE flow but open in system browser.
+      // This keeps users signed into Google and supports passkeys reliably.
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          skipBrowserRedirect: true,
+          redirectTo: 'https://velostudio.app/auth/callback?source=electron',
+        },
+      });
+
+      if (oauthError || !data.url) {
+        setError(oauthError?.message || 'Failed to initiate Google sign-in');
+        return;
+      }
+
+      // Open in default browser to reuse existing Google login state.
+      await (window as any).electronAPI?.openExternalUrl(data.url);
+    } catch (err) {
+      console.error('Google sign-in error:', err);
+      setError('Failed to start Google sign-in');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Listen for deep link auth tokens (from browser OAuth callback)
+  // Listen for OAuth callback code from in-app OAuth window (primary flow)
   useEffect(() => {
-    const cleanup = (window as any).electronAPI?.onDeepLinkAuth?.(
-      async (data: { accessToken: string; refreshToken: string }) => {
-        console.log('[ElectronAuth] Received deep link auth tokens');
+    const cleanup = (window as any).electronAPI?.onOAuthCallback?.(
+      async (data: { code?: string; accessToken?: string; refreshToken?: string }) => {
+        console.log('[ElectronAuth] Received OAuth callback');
         try {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: data.accessToken,
-            refresh_token: data.refreshToken,
-          });
-          if (sessionError) {
-            console.error('[ElectronAuth] setSession error:', sessionError);
-            setError('Authentication failed: ' + sessionError.message);
+          if (data.code) {
+            // PKCE flow: exchange code for session (code verifier is in localStorage)
+            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(data.code);
+            if (exchangeError) {
+              console.error('[ElectronAuth] Code exchange error:', exchangeError);
+              setError('Authentication failed: ' + exchangeError.message);
+            } else {
+              // Make auth transition immediate and robust even if auth event timing is delayed.
+              const { data: sessionData } = await supabase.auth.getSession();
+              if (sessionData.session?.user) {
+                await ensureAccessAndNotifyMain(sessionData.session.user.id);
+              }
+            }
+            // onAuthStateChange will handle the rest (profile fetch → authReady)
+          } else if (data.accessToken && data.refreshToken) {
+            // Implicit flow fallback
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: data.accessToken,
+              refresh_token: data.refreshToken,
+            });
+            if (sessionError) {
+              console.error('[ElectronAuth] setSession error:', sessionError);
+              setError('Authentication failed: ' + sessionError.message);
+            } else {
+              const { data: sessionData } = await supabase.auth.getSession();
+              if (sessionData.session?.user) {
+                await ensureAccessAndNotifyMain(sessionData.session.user.id);
+              }
+            }
           }
-          // onAuthStateChange will handle the rest (fetch profile, signal auth-ready)
         } catch (err) {
-          console.error('[ElectronAuth] Deep link auth error:', err);
+          console.error('[ElectronAuth] OAuth callback error:', err);
           setError('Failed to complete authentication');
         }
       }
     );
     return () => cleanup?.();
-  }, []);
+  }, [ensureAccessAndNotifyMain]);
 
   // Loading state
   if (checking) {

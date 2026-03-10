@@ -95,10 +95,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   authReady: () => {
     ipcRenderer.send('auth-ready')
   },
-  // Deep link OAuth callback - receive tokens from browser OAuth flow
+  // Deep link OAuth callback - receive tokens from browser OAuth flow (fallback)
   onDeepLinkAuth: (callback: (data: { accessToken: string; refreshToken: string }) => void) => {
     const listener = (_: any, data: { accessToken: string; refreshToken: string }) => callback(data)
     ipcRenderer.on('deep-link-auth', listener)
     return () => ipcRenderer.removeListener('deep-link-auth', listener)
+  },
+  // OAuth in-app window (primary flow - replaces deep links)
+  openOAuthWindow: (url: string) => {
+    return ipcRenderer.invoke('open-oauth-window', url)
+  },
+  // Receive OAuth callback code from in-app OAuth window
+  onOAuthCallback: (callback: (data: { code?: string; accessToken?: string; refreshToken?: string }) => void) => {
+    const listener = (_: any, data: any) => callback(data)
+    ipcRenderer.on('oauth-callback', listener)
+    return () => ipcRenderer.removeListener('oauth-callback', listener)
+  },
+  // Permission checking (macOS)
+  checkScreenPermission: () => {
+    return ipcRenderer.invoke('check-screen-permission')
+  },
+  checkMicrophonePermission: () => {
+    return ipcRenderer.invoke('check-microphone-permission')
   },
 })

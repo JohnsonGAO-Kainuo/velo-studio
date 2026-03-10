@@ -76,6 +76,17 @@ export function AuthCallback() {
     };
 
     const handleElectronCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+
+      // PKCE flow: forward auth code to desktop app via deep link
+      if (code) {
+        const deepLinkUrl = `velostudio://auth/callback?code=${encodeURIComponent(code)}`;
+        setElectronRedirect(true);
+        window.location.href = deepLinkUrl;
+        return;
+      }
+
       // Extract tokens from URL hash (implicit OAuth flow)
       const hash = window.location.hash.substring(1);
       const hashParams = new URLSearchParams(hash);
