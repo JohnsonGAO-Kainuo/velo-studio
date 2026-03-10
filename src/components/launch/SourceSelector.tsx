@@ -22,17 +22,6 @@ export function SourceSelector() {
   const fetchSources = async () => {
     setLoading(true);
     try {
-      // Check screen recording permission on macOS before calling desktopCapturer
-      if (window.electronAPI?.checkScreenPermission) {
-        const status = await window.electronAPI.checkScreenPermission();
-        if (status !== 'granted') {
-          setPermissionDenied(true);
-          setSources([]);
-          setLoading(false);
-          return;
-        }
-      }
-
       setPermissionDenied(false);
       const rawSources = await window.electronAPI.getSources({
         types: ['screen', 'window'],
@@ -52,8 +41,13 @@ export function SourceSelector() {
           appIcon: source.appIcon
         }))
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading sources:', error);
+      // If getSources() throws, it's almost certainly a permission error on macOS
+      const msg = error?.message || '';
+      if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('access') || msg.toLowerCase().includes('denied')) {
+        setPermissionDenied(true);
+      }
       setSources([]);
     } finally {
       setLoading(false);
