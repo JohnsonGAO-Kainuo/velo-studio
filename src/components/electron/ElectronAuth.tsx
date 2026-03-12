@@ -48,16 +48,16 @@ export function ElectronAuth() {
     return isTrial || isActive;
   }, []);
 
-  const ensureAccessAndNotifyMain = useCallback(async (userId: string): Promise<boolean> => {
+  const ensureAccessAndNotifyMain = useCallback(async (userId: string, retries = 8): Promise<boolean> => {
     // Supabase profile row can be briefly unavailable right after OAuth/session exchange.
     // Retry a few times before giving up to avoid requiring app restart.
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < retries; i++) {
       const p = await fetchProfile(userId);
       if (checkAccess(p)) {
         (window as any).electronAPI?.authReady();
         return true;
       }
-      await sleep(500);
+      if (i < retries - 1) await sleep(500);
     }
     return false;
   }, [fetchProfile, checkAccess]);
@@ -66,10 +66,16 @@ export function ElectronAuth() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // Race getSession against a timeout – in Electron the call can hang
+        // indefinitely if storage or network isn't ready yet.
+        const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
+        const sessionResult = supabase.auth.getSession().then(r => r.data.session).catch(() => null);
+        const session = await Promise.race([sessionResult, timeout]);
+
         if (session?.user) {
           setUser(session.user);
-          await ensureAccessAndNotifyMain(session.user.id);
+          // On initial check use fewer retries – this is just restoring a saved session
+          await ensureAccessAndNotifyMain(session.user.id, 3);
         }
       } catch (err) {
         console.error('Session check error:', err);
