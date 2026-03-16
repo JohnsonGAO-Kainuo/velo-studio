@@ -107,23 +107,33 @@ export function SourceSelector() {
   if (sources.length === 0) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center ${styles.glassContainer}`}>
-        <div className="w-14 h-14 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-          <MdMonitor className="w-7 h-7 text-neutral-600" />
+        <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+          <MdMonitor className="w-7 h-7 text-orange-600" />
         </div>
-        <h3 className="text-sm font-semibold text-neutral-800 mb-2">No capturable sources found</h3>
-        <p className="text-xs text-neutral-500 mb-5 max-w-[280px] leading-relaxed">
-          If you just granted Screen Recording permission, macOS requires quitting and reopening Velo Studio before sources appear.
-        </p>
+        <h3 className="text-sm font-semibold text-neutral-800 mb-2">Screen Recording Permission Required</h3>
+        <div className="text-xs text-neutral-500 mb-4 max-w-[300px] leading-relaxed space-y-2">
+          <p>Please follow these steps:</p>
+          <ol className="text-left space-y-1.5 pl-4 list-decimal">
+            <li>Open <strong>System Settings → Privacy & Security → Screen Recording</strong></li>
+            <li>Find <strong>Velo Studio</strong> in the list and make sure the <strong>toggle is turned ON</strong> (blue)</li>
+            <li><strong>Completely quit</strong> Velo Studio (⌘Q)</li>
+            <li>Reopen Velo Studio</li>
+          </ol>
+          <p className="text-orange-600 font-medium mt-2">
+            ⚠ The app must be quit and reopened after enabling the toggle — simply retrying won't work.
+          </p>
+        </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={fetchSources}
-            className="px-4 py-1.5 text-xs bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50"
-          >
-            Retry
-          </Button>
           <Button variant="outline" onClick={() => window.close()} className="px-4 py-1.5 text-xs bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50">
             Close
+          </Button>
+          <Button
+            onClick={() => {
+              window.electronAPI?.openExternalUrl('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+            }}
+            className="px-4 py-1.5 text-xs bg-[#34B27B] text-white hover:bg-[#34B27B]/90"
+          >
+            Open Settings
           </Button>
         </div>
       </div>
