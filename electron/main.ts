@@ -115,6 +115,7 @@ let authWindow: BrowserWindow | null = null
 let sourceSelectorWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let selectedSourceName = ''
+let isAuthenticated = false  // Track auth state to prevent premature HUD creation
 
 // Tray Icons
 const defaultTrayIcon = getTrayIcon('openscreen.png');
@@ -156,6 +157,14 @@ function updateTrayMenu(recording: boolean = false) {
         {
           label: "Open",
           click: () => {
+            if (!isAuthenticated) {
+              // Not authenticated yet, show/focus auth window instead
+              if (authWindow && !authWindow.isDestroyed()) {
+                authWindow.show();
+                authWindow.focus();
+              }
+              return;
+            }
             if (mainWindow && !mainWindow.isDestroyed()) {
               mainWindow.isMinimized() && mainWindow.restore();
             } else {
@@ -250,11 +259,21 @@ app.whenReady().then(async () => {
 
     // Listen for auth ready event - switch from auth window to HUD overlay
     ipcMain.on('auth-ready', () => {
+      console.log('[Auth] auth-ready received, switching to HUD overlay');
+      isAuthenticated = true;
+      
       if (authWindow && !authWindow.isDestroyed()) {
         authWindow.close();
         authWindow = null;
       }
-      createWindow();
+      
+      // Small delay to ensure auth window is fully cleaned up before creating HUD
+      setTimeout(() => {
+        if (!mainWindow || mainWindow.isDestroyed()) {
+          createWindow();
+        }
+        updateTrayMenu();
+      }, 300);
     });
 
     // OAuth: open Google sign-in in a dedicated BrowserWindow (replaces unreliable deep links)

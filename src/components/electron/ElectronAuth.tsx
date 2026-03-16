@@ -52,12 +52,17 @@ export function ElectronAuth() {
     // Supabase profile row can be briefly unavailable right after OAuth/session exchange.
     // Retry a few times before giving up to avoid requiring app restart.
     for (let i = 0; i < retries; i++) {
-      const p = await fetchProfile(userId);
-      if (checkAccess(p)) {
-        (window as any).electronAPI?.authReady();
-        return true;
+      try {
+        const p = await fetchProfile(userId);
+        if (checkAccess(p)) {
+          console.log('[ElectronAuth] Access granted, notifying main process');
+          (window as any).electronAPI?.authReady();
+          return true;
+        }
+      } catch (err) {
+        console.warn('[ElectronAuth] Profile fetch attempt failed:', err);
       }
-      if (i < retries - 1) await sleep(500);
+      if (i < retries - 1) await sleep(1000);
     }
     return false;
   }, [fetchProfile, checkAccess]);
@@ -74,8 +79,15 @@ export function ElectronAuth() {
 
         if (session?.user) {
           setUser(session.user);
-          // On initial check use fewer retries – this is just restoring a saved session
-          await ensureAccessAndNotifyMain(session.user.id, 3);
+          // Try to restore session — if profile fetch fails, still show the login form
+          // so the user can re-authenticate
+          const hasAccess = await ensureAccessAndNotifyMain(session.user.id, 3);
+          if (!hasAccess) {
+            console.warn('[ElectronAuth] Session exists but no access, showing login');
+            // Clear stale session so user can re-login
+            setUser(null);
+            setProfile(null);
+          }
         }
       } catch (err) {
         console.error('Session check error:', err);
