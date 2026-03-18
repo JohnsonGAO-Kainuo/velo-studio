@@ -18,6 +18,7 @@ export function AuthCallback() {
   const [error, setError] = useState<string | null>(null);
   const [electronRedirect, setElectronRedirect] = useState(false);
   const [electronTokens, setElectronTokens] = useState<{ accessToken: string; refreshToken: string } | null>(null);
+  const [deepLinkUrl, setDeepLinkUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -81,9 +82,11 @@ export function AuthCallback() {
 
       // PKCE flow: forward auth code to desktop app via deep link
       if (code) {
-        const deepLinkUrl = `velostudio://auth/callback?code=${encodeURIComponent(code)}`;
+        const url = `velostudio://auth/callback?code=${encodeURIComponent(code)}`;
+        setDeepLinkUrl(url);
         setElectronRedirect(true);
-        window.location.href = deepLinkUrl;
+        // Auto-trigger deep link (may be blocked by browser requiring user interaction)
+        window.location.href = url;
         return;
       }
 
@@ -131,7 +134,9 @@ export function AuthCallback() {
           <p className="text-[#5c5c5c] mb-6">Redirecting you back to Velo Studio...</p>
           <button
             onClick={() => {
-              if (electronTokens) {
+              if (deepLinkUrl) {
+                window.location.href = deepLinkUrl;
+              } else if (electronTokens) {
                 window.location.href = `velostudio://auth/callback?access_token=${encodeURIComponent(electronTokens.accessToken)}&refresh_token=${encodeURIComponent(electronTokens.refreshToken)}`;
               }
             }}
