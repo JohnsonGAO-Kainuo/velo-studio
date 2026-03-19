@@ -308,12 +308,15 @@ export function Hero() {
               </div>
             </div>
 
-            {/* Real App Screenshot */}
-            <img
-              src="/screenshots/editor-preview.png"
-              alt="Velo Studio Editor - Record, edit, and export beautiful screen recordings"
+            {/* Product Demo Video */}
+            <video
+              src="/videos/demo.mp4"
+              poster="/screenshots/demo-poster.jpg"
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-auto block"
-              loading="eager"
             />
           </div>
         </motion.div>
