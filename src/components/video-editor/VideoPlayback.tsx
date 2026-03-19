@@ -451,9 +451,9 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
         width: container.clientWidth,
         height: container.clientHeight,
         backgroundAlpha: 0,
-        antialias: true,
-        resolution: window.devicePixelRatio || 1,
-        autoDensity: true,
+        antialias: false,
+        resolution: 1,
+        autoDensity: false,
       });
 
       app.ticker.maxFPS = 60;
@@ -544,7 +544,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(({
 
     const blurFilter = new BlurFilter();
     blurFilter.quality = 3;
-    blurFilter.resolution = app.renderer.resolution;
+    blurFilter.resolution = 1;
     blurFilter.blur = 0;
     videoContainer.filters = [blurFilter];
     blurFilterRef.current = blurFilter;

@@ -11,6 +11,8 @@ let cursorTrackingActive = false
 let cursorEvents: Array<{x: number, y: number, timestamp: number, type: string, button?: number}> = []
 let cursorTrackingStartTime = 0
 let cursorTrackingInterval: NodeJS.Timeout | null = null
+// Source bounds for window captures (null = full screen)
+let cursorSourceBounds: { x: number, y: number, width: number, height: number } | null = null
 
 export function registerIpcHandlers(
   createEditorWindow: () => void,
@@ -263,13 +265,51 @@ export function registerIpcHandlers(
   });
 
   // Cursor tracking handlers
-  ipcMain.handle('start-cursor-tracking', () => {
+  ipcMain.handle('start-cursor-tracking', (_, sourceId?: string) => {
     const primaryDisplay = screen.getPrimaryDisplay()
-    const { width, height } = primaryDisplay.size
+    const { width: screenW, height: screenH } = primaryDisplay.size
     
     cursorEvents = []
     cursorTrackingStartTime = Date.now()
     cursorTrackingActive = true
+    cursorSourceBounds = null
+
+    // For window captures, try to find window bounds so we can normalize
+    // cursor coordinates to the captured window instead of the full screen.
+    if (sourceId && sourceId.startsWith('window:')) {
+      try {
+        const { execSync } = require('child_process')
+        // Extract the numeric window ID from the Electron source id
+        // Format: "window:123:0" → windowNumber = 123
+        const windowIdStr = sourceId.split(':')[1]
+        const windowNumber = parseInt(windowIdStr, 10)
+        if (!isNaN(windowNumber)) {
+          // Use CGWindowListCopyWindowInfo via Python to get window bounds
+          const script = `python3 -c "
+import json, subprocess, sys
+import Quartz
+wins = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionIncludingWindow, ${windowNumber})
+if wins and len(wins) > 0:
+    b = wins[0].get('kCGWindowBounds', {})
+    print(json.dumps({'x': b.get('X',0), 'y': b.get('Y',0), 'width': b.get('Width',0), 'height': b.get('Height',0)}))
+else:
+    print('null')
+"`
+          const result = execSync(script, { timeout: 3000, encoding: 'utf-8' }).trim()
+          if (result && result !== 'null') {
+            const bounds = JSON.parse(result)
+            if (bounds.width > 0 && bounds.height > 0) {
+              cursorSourceBounds = bounds
+              console.log('[Cursor Tracking] Window bounds:', cursorSourceBounds)
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Cursor Tracking] Could not get window bounds, using full screen:', err)
+      }
+    }
+
+    const bounds = cursorSourceBounds
     
     // Sample cursor position at 30fps
     cursorTrackingInterval = setInterval(() => {
@@ -278,16 +318,27 @@ export function registerIpcHandlers(
       const point = screen.getCursorScreenPoint()
       const timestamp = Date.now() - cursorTrackingStartTime
       
-      // Normalize coordinates to 0-1 range
+      // Normalize coordinates to 0-1 range relative to the capture source
+      let nx: number, ny: number
+      if (bounds) {
+        // Window capture: normalize relative to window bounds
+        nx = (point.x - bounds.x) / bounds.width
+        ny = (point.y - bounds.y) / bounds.height
+      } else {
+        // Full screen capture: normalize relative to screen
+        nx = point.x / screenW
+        ny = point.y / screenH
+      }
+      
       cursorEvents.push({
-        x: point.x / width,
-        y: point.y / height,
+        x: nx,
+        y: ny,
         timestamp,
         type: 'move'
       })
     }, 33) // ~30fps
     
-    return { success: true, screenWidth: width, screenHeight: height }
+    return { success: true, screenWidth: bounds?.width || screenW, screenHeight: bounds?.height || screenH }
   })
 
   ipcMain.handle('stop-cursor-tracking', () => {
@@ -318,13 +369,24 @@ export function registerIpcHandlers(
     if (!cursorTrackingActive) return { success: false }
     
     const primaryDisplay = screen.getPrimaryDisplay()
-    const { width, height } = primaryDisplay.size
+    const { width: screenW, height: screenH } = primaryDisplay.size
     const point = screen.getCursorScreenPoint()
     const timestamp = Date.now() - cursorTrackingStartTime
+    const bounds = cursorSourceBounds
+    
+    // Normalize coordinates relative to the capture source
+    let nx: number, ny: number
+    if (bounds) {
+      nx = (point.x - bounds.x) / bounds.width
+      ny = (point.y - bounds.y) / bounds.height
+    } else {
+      nx = point.x / screenW
+      ny = point.y / screenH
+    }
     
     cursorEvents.push({
-      x: point.x / width,
-      y: point.y / height,
+      x: nx,
+      y: ny,
       timestamp,
       type: 'click',
       button

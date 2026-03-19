@@ -60,7 +60,7 @@ interface Window {
     minimizeMainWindow: () => Promise<void>
     restoreMainWindow: () => Promise<void>
     // Cursor tracking for auto-zoom
-    startCursorTracking: () => Promise<CursorTrackingResult>
+    startCursorTracking: (sourceId?: string) => Promise<CursorTrackingResult>
     stopCursorTracking: () => Promise<CursorTrackingData>
     recordCursorClick: (button: number) => Promise<{ success: boolean }>
     saveCursorData: (videoPath: string, cursorData: string) => Promise<{ success: boolean; path?: string; error?: string }>

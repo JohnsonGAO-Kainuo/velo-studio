@@ -91,7 +91,7 @@ export function useScreenRecorder(): UseScreenRecorderReturn {
 
       // Start cursor tracking for auto-zoom feature (always enabled, user can apply in editor)
       try {
-        const trackingResult = await window.electronAPI.startCursorTracking();
+        const trackingResult = await window.electronAPI.startCursorTracking(selectedSource.id);
         if (trackingResult.success && trackingResult.screenWidth && trackingResult.screenHeight) {
           cursorTrackingInfo.current = {
             screenWidth: trackingResult.screenWidth,

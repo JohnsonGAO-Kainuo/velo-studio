@@ -76,8 +76,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return ipcRenderer.invoke('restore-main-window')
   },
   // Cursor tracking for auto-zoom
-  startCursorTracking: () => {
-    return ipcRenderer.invoke('start-cursor-tracking')
+  startCursorTracking: (sourceId?: string) => {
+    return ipcRenderer.invoke('start-cursor-tracking', sourceId)
   },
   stopCursorTracking: () => {
     return ipcRenderer.invoke('stop-cursor-tracking')

@@ -866,11 +866,12 @@ export default function TimelineEditor({
           <Button
             onClick={handleAddZoom}
             variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-neutral-500 hover:text-[#34B27B] hover:bg-[#34B27B]/10 transition-all"
+            size="sm"
+            className="h-8 gap-1.5 px-2.5 text-neutral-500 hover:text-[#34B27B] hover:bg-[#34B27B]/10 transition-all"
             title="Add Zoom (Z)"
           >
             <ZoomIn className="w-4 h-4" />
+            <span className="text-xs font-medium">Zoom</span>
           </Button>
           {onAutoZoom && (
             <PushButton

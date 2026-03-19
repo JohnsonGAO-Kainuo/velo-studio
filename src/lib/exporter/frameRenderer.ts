@@ -144,7 +144,8 @@ export class FrameRenderer {
 
     try {
       // Render background based on type
-      if (wallpaper.startsWith('file://') || wallpaper.startsWith('data:') || wallpaper.startsWith('/') || wallpaper.startsWith('http')) {
+      const isImageUrl = wallpaper.startsWith('file://') || wallpaper.startsWith('data:') || wallpaper.startsWith('/') || wallpaper.startsWith('http') || wallpaper.startsWith('velo-asset://');
+      if (isImageUrl) {
         // Image background
         const img = new Image();
         // Don't set crossOrigin for same-origin images to avoid CORS taint
@@ -155,7 +156,7 @@ export class FrameRenderer {
           if (!imageUrl.startsWith(window.location.origin)) {
             img.crossOrigin = 'anonymous';
           }
-        } else if (wallpaper.startsWith('file://') || wallpaper.startsWith('data:')) {
+        } else if (wallpaper.startsWith('file://') || wallpaper.startsWith('data:') || wallpaper.startsWith('velo-asset://')) {
           imageUrl = wallpaper;
         } else {
           imageUrl = window.location.origin + wallpaper;
