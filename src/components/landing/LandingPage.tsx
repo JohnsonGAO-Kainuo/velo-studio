@@ -394,12 +394,34 @@ export function Features() {
 
 export function Pricing() {
     const { user, isSubscriptionActive } = useAuth();
+    const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('yearly');
     return (
         <section className="py-32 px-6 bg-white border-y border-black/5">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-20">
                     <h2 className="text-4xl font-bold text-[#202020] mb-4">Simple, transparent pricing</h2>
                     <p className="text-[#5c5c5c] text-lg">One plan. All features. No hidden costs.</p>
+
+                    {/* Billing Toggle */}
+                    <div className="flex items-center justify-center gap-3 mt-8">
+                      <span className={cn("text-sm font-medium transition-colors", billingPeriod === 'monthly' ? 'text-[#202020]' : 'text-[#5c5c5c]')}>Monthly</span>
+                      <button
+                        onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')}
+                        className={cn(
+                          "relative w-12 h-7 rounded-full transition-colors duration-200",
+                          billingPeriod === 'yearly' ? 'bg-[#202020]' : 'bg-black/10'
+                        )}
+                      >
+                        <div className={cn(
+                          "absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200",
+                          billingPeriod === 'yearly' ? 'translate-x-6' : 'translate-x-1'
+                        )} />
+                      </button>
+                      <span className={cn("text-sm font-medium transition-colors", billingPeriod === 'yearly' ? 'text-[#202020]' : 'text-[#5c5c5c]')}>
+                        Yearly
+                      </span>
+                      <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Save 29%</span>
+                    </div>
                 </div>
 
                 <div className="max-w-xl mx-auto">
@@ -413,13 +435,27 @@ export function Pricing() {
                             <p className="text-[#5c5c5c] text-sm">Professional screen recording made simple</p>
                         </div>
                         <div className="text-center mb-8">
-                            <div className="flex items-baseline justify-center gap-2 mb-2">
-                                <span className="text-5xl font-bold text-[#202020]">$8</span>
-                                <span className="text-[#5c5c5c] text-lg">/month</span>
-                            </div>
-                            <div className="text-sm text-[#5c5c5c]">
-                                or <span className="font-semibold text-[#202020]">$68/year</span> <span className="text-green-600 font-medium">(save 29%)</span>
-                            </div>
+                            <AnimatePresence mode="wait">
+                              <motion.div
+                                key={billingPeriod}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <div className="flex items-baseline justify-center gap-2 mb-2">
+                                    <span className="text-5xl font-bold text-[#202020]">{billingPeriod === 'monthly' ? '$8' : '$68'}</span>
+                                    <span className="text-[#5c5c5c] text-lg">{billingPeriod === 'monthly' ? '/month' : '/year'}</span>
+                                </div>
+                                <div className="text-sm text-[#5c5c5c]">
+                                    {billingPeriod === 'monthly' ? (
+                                      <>or <button onClick={() => setBillingPeriod('yearly')} className="font-semibold text-[#202020] underline underline-offset-2 hover:text-green-600 transition-colors">$68/year</button> <span className="text-green-600 font-medium">(save 29%)</span></>
+                                    ) : (
+                                      <>That's just <span className="font-semibold text-[#202020]">$5.67/month</span> — billed annually</>
+                                    )}
+                                </div>
+                              </motion.div>
+                            </AnimatePresence>
                         </div>
                         {user ? (
                           isSubscriptionActive() ? (

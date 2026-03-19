@@ -29,5 +29,6 @@ dist-ssr
 *.sw?
 release/**
 *.kiro/
-# npx electron-builder --mac --win*.mp4
+# npx electron-builder --mac --win
+*.mp4
 image.png
