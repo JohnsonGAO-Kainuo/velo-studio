@@ -6,8 +6,6 @@ import {
   Menu,
   X,
   Monitor,
-  Video,
-  Mic,
   Settings,
   ArrowRight,
   Globe,
@@ -242,7 +240,7 @@ export function Hero() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
           </span>
-          <span className="text-sm font-medium text-[#5c5c5c]">Velo Studio v1.0 is now available</span>
+          <span className="text-sm font-medium text-[#5c5c5c]">Velo Studio v1.1 is now available</span>
           <ArrowRight className="w-4 h-4 text-[#5c5c5c] ml-1" />
         </motion.div>
 
@@ -277,8 +275,8 @@ export function Hero() {
             const isAppleSilicon = navigator.userAgent.includes('Mac') && 
               (navigator.userAgent.includes('ARM') || navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0);
             const downloadUrl = isAppleSilicon 
-              ? 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.1.0/Velo.Studio-Mac-arm64-1.1.0-Installer.dmg'
-              : 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.1.0/Velo.Studio-Mac-x64-1.1.0-Installer.dmg';
+              ? 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.1.1/Velo.Studio-Mac-arm64-1.1.1-Installer.dmg'
+              : 'https://github.com/JohnsonGAO-Kainuo/velo-studio/releases/download/v1.1.1/Velo.Studio-Mac-x64-1.1.1-Installer.dmg';
             window.open(downloadUrl, '_blank');
           }}>
             <div className="outline" />
@@ -293,7 +291,7 @@ export function Hero() {
           </button>
         </motion.div>
 
-        {/* App Window Preview */}
+        {/* App Screenshot Preview */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -302,65 +300,21 @@ export function Hero() {
         >
           <div className="rounded-2xl border border-black/5 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden ring-1 ring-black/5">
             {/* Window Header */}
-            <div className="h-12 bg-white border-b border-black/5 flex items-center px-5 justify-between">
+            <div className="h-10 bg-white border-b border-black/5 flex items-center px-4">
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-black/5" />
                 <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-black/5" />
                 <div className="w-3 h-3 rounded-full bg-[#28c840] border border-black/5" />
               </div>
-              <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-[#f2f2f2]">
-                <Shield className="w-3 h-3 text-[#5c5c5c]" />
-                <span className="text-xs font-medium text-[#5c5c5c]">velo-recording-001.mp4</span>
-              </div>
-              <div className="w-12" />
             </div>
 
-            {/* Window Content */}
-            <div className="aspect-[16/10] bg-[#fafafa] relative flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:32px_32px]" />
-                
-                {/* Simulated UI inside the window */}
-                <div className="flex flex-col gap-6 items-center z-10 w-full max-w-md">
-                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-black/5 w-full">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
-                                    <Video className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <div className="font-semibold text-[#202020]">Screen Recording</div>
-                                    <div className="text-xs text-[#5c5c5c]">Ready to capture</div>
-                                </div>
-                            </div>
-                            <div className="px-2 py-1 bg-gray-100 rounded-md text-xs font-mono font-medium text-gray-500">1080p</div>
-                        </div>
-                        
-                        <div className="space-y-3">
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <motion.div 
-                                    className="h-full bg-[#202020] rounded-full"
-                                    initial={{ width: "0%" }}
-                                    whileInView={{ width: "100%" }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                />
-                            </div>
-                            <div className="flex justify-between text-xs text-[#5c5c5c]">
-                                <span>Mic Input</span>
-                                <span><Mic className="w-3 h-3 inline mr-1"/>Active</span>
-                            </div>
-                        </div>
-                     </div>
-
-                     <div className="flex gap-4">
-                        <Button size="icon" className="w-12 h-12 rounded-full bg-[#ff5f57] text-white hover:bg-[#ff5f57]/90 shadow-lg shadow-red-500/20">
-                            <div className="w-4 h-4 bg-white rounded-sm" />
-                        </Button>
-                        <Button size="icon" variant="outline" className="w-12 h-12 rounded-full bg-white border-black/5 text-[#202020] hover:bg-gray-50">
-                            <Settings className="w-4 h-4" />
-                        </Button>
-                     </div>
-                </div>
-            </div>
+            {/* Real App Screenshot */}
+            <img
+              src="/screenshots/editor-preview.png"
+              alt="Velo Studio Editor - Record, edit, and export beautiful screen recordings"
+              className="w-full h-auto block"
+              loading="eager"
+            />
           </div>
         </motion.div>
       </div>
@@ -659,11 +613,68 @@ export function FAQ() {
   );
 }
 
+export function VideoDemo() {
+  return (
+    <section className="py-24 px-6">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-14">
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-sm font-semibold text-[#202020] uppercase tracking-widest mb-2 block"
+          >
+            See it in action
+          </motion.span>
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold text-[#202020] mb-4"
+          >
+            Record. Edit. Export.
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            viewport={{ once: true }}
+            className="text-lg text-[#5c5c5c] max-w-2xl mx-auto"
+          >
+            Watch how Velo Studio transforms a simple screen recording into a polished, professional video in seconds.
+          </motion.p>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="rounded-2xl overflow-hidden border border-black/5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12)] bg-black"
+        >
+          <video
+            className="w-full h-auto block"
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="/screenshots/demo-poster.jpg"
+          >
+            <source src="/videos/demo.mp4" type="video/mp4" />
+          </video>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-[#f2f2f2] text-[#5c5c5c] font-sans selection:bg-[#202020] selection:text-white">
       <NavBar />
       <Hero />
+      <VideoDemo />
       <Features />
       <Pricing />
       <FAQ />
